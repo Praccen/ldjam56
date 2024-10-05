@@ -15,7 +15,8 @@
   "name": "praccen-web-engine",
   "scripts": {
     "dev": "tsup --watch",
-    "build": "tsup"
+    "build": "tsup",
+    "build:release": "NODE_ENV=production tsup"
   },
   "type": "module",
   "exports": {
@@ -25,5 +26,4 @@
       "require": "./dist/Engine.cjs.js"
     }
   }
-
 }

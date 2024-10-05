@@ -2,20 +2,34 @@ name: Build on NixOS
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     runs-on: self-hosted
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Build with Nix
-      run: | 
-        nix --experimental-features "nix-command flakes" develop -c npm run build:release --if-present
-        nix --experimental-features "nix-command flakes" develop -c cd Game/ldjam54 && npm run build:release --if-present
-        cp index.* /var/www/ldjam56.rlyeh.nu/
-        cp dist/* /var/www/ldjam56.rlyeh.nu/
+      - name: Build build and install engine
+        run: |
+          nix --experimental-features "nix-command flakes" develop -c npm install
+          nix --experimental-features "nix-command flakes" develop -c npm run build:release --if-present
+
+      - name: Link and build game
+        working-directory: ./Games/ldjam56
+        run: |
+          nix --experimental-features "nix-command flakes" develop ../../ -c npm install ../../
+          echo "Installed"
+          nix --experimental-features "nix-command flakes" develop ../../ -c npm run build:release --if-present
+          echo "Build"
+
+      - name: Copy files
+        run: |
+          rm -r /var/www/ldjam56.rlyeh.nu/*
+          cp Games/ldjam56/index.html /var/www/ldjam56.rlyeh.nu/
+          cp Games/ldjam56/index.css /var/www/ldjam56.rlyeh.nu/
+          cp Games/ldjam56/dist -r /var/www/ldjam56.rlyeh.nu/
+          cp Games/ldjam56/Assets -r /var/www/ldjam56.rlyeh.nu/

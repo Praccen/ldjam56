@@ -13,10 +13,10 @@ export default defineConfig((options) => ({
       js: `.${format}.js`,
     };
   },
-  sourcemap: true,
   clean: true,
   target: tsconfig.compilerOptions.target as "es2015",
-  minify: false,
+  sourcemap: process.env.NODE_ENV !== "production",
+  minify: process.env.NODE_ENV === "production",
   // minify: !options.watch == Conditional config ==
   noExternal: ["praccen-web-engine"],
 }));
