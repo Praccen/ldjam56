@@ -200,7 +200,7 @@ function update(dt: number) {
     }
 
     player.update(dt, camera, renderer);
-    enemy.update(dt, camera);
+    enemy.update(dt, renderer);
 
     // Update physics
     physicsScene.update(dt);
