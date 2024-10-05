@@ -18,6 +18,7 @@ import GUI from "./GUI/GUI.js";
 import Inventory from "./GUI/Inventory.js";
 import { ItemList } from "./Objects/Items/ItemSpecs.js";
 import ItemHandler from "./Objects/Items/ItemHandler.js";
+import Enemy from "./Objects/Enemy.js";
 
 /* ---- Elevator pitch ----
 A rougelite top down 3D procedurally generated dungeon crawler wher you pull a cart with a fire. 
@@ -136,6 +137,10 @@ let gameTimer: number = 0.0;
 let map = new ProceduralMap(scene, physicsScene);
 let playerSpawnRoom = map.getPlayerSpawnRoom();
 let player = new Player(scene, physicsScene, playerSpawnRoom);
+// Init as part of map
+// let enemies = new Array<Enemy>();
+let enemy = new Enemy(scene, physicsScene, vec2.fromValues(0, 0), map);
+
 let inventory = new Inventory(guiRenderer);
 inventory.toggle();
 
@@ -191,6 +196,7 @@ function update(dt: number) {
     }
 
     player.update(dt, camera, renderer);
+    enemy.update(dt, camera);
 
     // Update physics
     physicsScene.update(dt);

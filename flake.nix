@@ -20,11 +20,11 @@
           with pkgs;
           mkShell {
             buildInputs = [
-              pkgs.tree-sitter
-              pkgs.tree-sitter-grammars.tree-sitter-javascript
-              pkgs.tree-sitter-grammars.tree-sitter-typescript
-              pkgs.nodejs_22
-              (pkgs.python311Packages.python.withPackages (p: [ p.rangehttpserver ]))
+              tree-sitter
+              tree-sitter-grammars.tree-sitter-javascript
+              tree-sitter-grammars.tree-sitter-typescript
+              nodejs
+              (python311Packages.python.withPackages (p: [ p.rangehttpserver ]))
             ];
             shellHook = '''';
           };

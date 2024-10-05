@@ -29,7 +29,7 @@ export default class Player {
       "Assets/objs/cube.obj",
       vec3.clone(this.playerTargetPos),
       vec3.fromValues(1.0, 2.0, 1.0),
-      "CSS:rgb(150, 0, 0)",
+      "CSS:rgb(0, 0, 255)",
       "CSS:rgb(0, 0, 0)"
     ).then((mesh) => {
       this.physicsObj = physicsScene.addNewPhysicsObject(mesh.transform);

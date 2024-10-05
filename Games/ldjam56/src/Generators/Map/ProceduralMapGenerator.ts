@@ -780,4 +780,94 @@ export default class ProceduralMap {
   getPlayerSpawnRoom(): vec2 {
     return this.playerSpawnRoom;
   }
+
+  getRoomCenterWorldPos(room: vec2): vec3 {
+    let x = ((room[0] - 1) / 2) * roomSize + roomSize / 2;
+    let y = ((room[1] - 1) / 2) * roomSize + roomSize / 2;
+    return vec3.fromValues(x, 1, y);
+  }
+
+  reconstructPath(previous: (vec2 | null)[][], target: vec2): vec2[] {
+    const path: vec2[] = [];
+    let current: vec2 | null = target;
+
+    while (current !== null) {
+      path.push(vec2.clone(current));
+      current = previous[current[0]][current[1]];
+    }
+
+    return path.reverse();
+  }
+
+  findPath(start: vec2, target: vec2) {
+    console.log(this.map);
+    const rows = this.map.length;
+    const cols = this.map[0].length;
+    const directions: vec2[] = [
+      vec2.fromValues(0, 1), // Right
+      vec2.fromValues(1, 0), // Down
+      vec2.fromValues(0, -1), // Left
+      vec2.fromValues(-1, 0), // Up
+    ];
+
+    const distance: number[][] = Array.from({ length: rows }, () =>
+      Array(cols).fill(Infinity)
+    );
+    const previous: (vec2 | null)[][] = Array.from({ length: rows }, () =>
+      Array(cols).fill(null)
+    );
+    class PriorityQueue<T> {
+      private elements: { item: T; priority: number }[] = [];
+
+      enqueue(item: T, priority: number) {
+        this.elements.push({ item, priority });
+        this.elements.sort((a, b) => a.priority - b.priority);
+      }
+
+      dequeue(): T | undefined {
+        return this.elements.shift()?.item;
+      }
+
+      isEmpty(): boolean {
+        return this.elements.length === 0;
+      }
+    }
+    const queue = new PriorityQueue<vec2>();
+
+    distance[start[0]][start[1]] = 0;
+    queue.enqueue(start, 0);
+
+    while (!queue.isEmpty()) {
+      const current = queue.dequeue()!;
+      const [x, y] = current;
+
+      if (vec2.equals(current, target)) {
+        return this.reconstructPath(previous, target);
+      }
+
+      for (const dir of directions) {
+        const neighbor = vec2.add(vec2.create(), current, dir);
+        const nx = neighbor[0];
+        const ny = neighbor[1];
+
+        if (
+          nx >= 0 &&
+          nx < rows &&
+          ny >= 0 &&
+          ny < cols &&
+          this.map[nx][ny] == 0
+        ) {
+          const newDist = distance[x][y] + 1;
+
+          if (newDist < distance[nx][ny]) {
+            distance[nx][ny] = newDist;
+            previous[nx][ny] = vec2.clone(current);
+            queue.enqueue(neighbor, newDist);
+          }
+        }
+      }
+    }
+
+    return null; // No path found
+  }
 }
