@@ -22,10 +22,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-#      uses: actions/setup-node@v4
- #     with:
-  #      node-version: ${{ matrix.node-version }}
-   #     cache: 'npm'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
     - run: nix --experimental-features "nix-command flakes" develop -c npm run build:release --if-present
     - run: nix --experimental-features "nix-command flakes" develop -c cd Game/ldjam54 && npm run build:release --if-present
     - run: cp index.* /var/www/ldjam56.rlyeh.nu/
