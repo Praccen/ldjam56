@@ -148,10 +148,10 @@ let itemHandler = new ItemHandler(guiRenderer, gui, inventory);
 
 let animatedTestMesh: AnimatedGraphicsBundle = null;
 scene
-  .addNewAnimatedMesh("", "CSS:rgb(255, 0, 0)", "CSS:rgb(0,0,0)")
+  .addNewAnimatedMesh("Assets/gltf/VampireDance.gltf", "Assets/gltf/VampireDanceTextures/Vampire_diffuse.png", "CSS:rgb(0,0,0)")
   .then((aMeshBundle) => {
     animatedTestMesh = aMeshBundle;
-    vec3.set(animatedTestMesh.transform.position, 20.0, 10.0, 20.0);
+    vec3.set(animatedTestMesh.transform.position, 15.0, 1.0, 12.0);
   });
 
 /**
@@ -392,9 +392,9 @@ function preRendereringUpdate(dt: number) {
     itemHandler.preRenderingUpdate(dt, player.physicsObj.transform.position);
   }
 
-  if (animatedTestMesh != undefined) {
-    animatedTestMesh.update(Math.sin(gameTimer) * 0.8);
-  }
+  // if (animatedTestMesh != undefined) {
+  //   animatedTestMesh.update(Math.sin(gameTimer) * 0.8);
+  // }
 }
 
 // Resize function to that will update the size of our game window when the browser window is resized
