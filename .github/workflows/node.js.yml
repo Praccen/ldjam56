@@ -21,6 +21,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    
     - name: Use Node.js
     - run: nix --experimental-features "nix-command flakes" develop -c npm run build:release --if-present
     - run: nix --experimental-features "nix-command flakes" develop -c cd Game/ldjam54 && npm run build:release --if-present
