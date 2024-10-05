@@ -11,20 +11,14 @@ on:
 
 jobs:
   build:
-
-    runs-on: self-hosted
-
-    #strategy:
-     # matrix:
-    #    node-version: [18.x, 20.x, 22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    runs-on: self-hosted # Use NixOS runner
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
     
     - name: Use Node.js
     - run: nix --experimental-features "nix-command flakes" develop -c npm run build:release --if-present
     - run: nix --experimental-features "nix-command flakes" develop -c cd Game/ldjam54 && npm run build:release --if-present
     - run: cp index.* /var/www/ldjam56.rlyeh.nu/
     - run: cp dist/* /var/www/ldjam56.rlyeh.nu/
-    
+
