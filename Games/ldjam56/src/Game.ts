@@ -137,9 +137,21 @@ let gameTimer: number = 0.0;
 let map = new ProceduralMap(scene, physicsScene);
 let playerSpawnRoom = map.getPlayerSpawnRoom();
 let player = new Player(scene, physicsScene, playerSpawnRoom);
-// Init as part of map
-// let enemies = new Array<Enemy>();
-let enemy = new Enemy(scene, physicsScene, vec2.fromValues(0, 0), map);
+let enemies = new Array<Enemy>();
+for (let i = 0; i < map.getNumEnemies(); i++) {
+  let path = map.getEnemyPath(i);
+  let enemy = new Enemy(
+    scene,
+    physicsScene,
+    path.start,
+    path.end,
+    map,
+    enemies,
+    i % 2 == 0,
+    i
+  );
+  enemies.push(enemy);
+}
 
 let inventory = new Inventory(guiRenderer);
 inventory.toggle();
@@ -202,7 +214,9 @@ function update(dt: number) {
     }
 
     player.update(dt, camera, renderer);
-    enemy.update(dt, renderer);
+    for (let enemy of enemies) {
+      enemy.update(dt, renderer);
+    }
 
     // Update physics
     physicsScene.update(dt);

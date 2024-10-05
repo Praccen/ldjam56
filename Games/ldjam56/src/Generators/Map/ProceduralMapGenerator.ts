@@ -191,6 +191,11 @@ const wallPieceModels = new Array<{
 
 const roomSize = 10.0;
 
+class Path {
+  start: vec2 = null;
+  end: vec2 = null;
+}
+
 export default class ProceduralMap {
   private scene: ENGINE.Scene;
   private instancedMeshes: Map<string, ENGINE.GraphicsBundle>;
@@ -200,6 +205,8 @@ export default class ProceduralMap {
   private exploredAsciiMap: string;
   private visitedRooms: Set<string>;
   private playerSpawnRoom: vec2;
+  private enemyPaths: Map<string, Path> = new Map<string, Path>();
+  private enemyNumbers: string[] = new Array<string>();
   focusRoom: vec2;
 
   constructor(scene: ENGINE.Scene, physicsScene: ENGINE.PhysicsScene) {
@@ -241,12 +248,12 @@ export default class ProceduralMap {
     this.focusRoom = vec2.fromValues(-1.0, -1.0);
 
     const mapLayout = `
-222222        
-225222
+BFGE2A
+H2522D
+C2442C
 224422
-224422
-222222
-222222
+D2222H
+A2EGFB
 `;
 
     // `
@@ -337,6 +344,26 @@ export default class ProceduralMap {
           mustGoRooms.push([columnNr, rowNr]);
           connectionRooms.push([columnNr, rowNr]);
           vec2.set(this.playerSpawnRoom, columnNr, rowNr);
+        }
+        if (Number(row[columnNr]) > 5 || isNaN(+row[columnNr])) {
+          mustGoRooms.push([columnNr, rowNr]);
+          connectionRooms.push([columnNr, rowNr]);
+          let num = row[columnNr];
+          if (!this.enemyPaths.has(num)) {
+            this.enemyNumbers.push(num);
+            this.enemyPaths.set(num, new Path());
+            this.enemyPaths.get(num).start = vec2.fromValues(
+              columnNr * 2 + 1,
+              rowNr * 2 + 1
+            );
+          } else if (this.enemyPaths.get(num).end == null) {
+            this.enemyPaths.get(num).end = vec2.fromValues(
+              columnNr * 2 + 1,
+              rowNr * 2 + 1
+            );
+          } else {
+            throw "More than two endpoints defined for " + String(num);
+          }
         }
       }
       rowNr++;
@@ -787,6 +814,14 @@ export default class ProceduralMap {
     return vec3.fromValues(x, 1, y);
   }
 
+  getNumEnemies(): number {
+    return this.enemyPaths.size;
+  }
+
+  getEnemyPath(num: number): Path {
+    return this.enemyPaths.get(this.enemyNumbers[num]);
+  }
+
   reconstructPath(previous: (vec2 | null)[][], target: vec2): vec2[] {
     const path: vec2[] = [];
     let current: vec2 | null = target;
@@ -800,7 +835,6 @@ export default class ProceduralMap {
   }
 
   findPath(start: vec2, target: vec2) {
-    console.log(this.map);
     const rows = this.map.length;
     const cols = this.map[0].length;
     const directions: vec2[] = [
