@@ -148,7 +148,11 @@ let itemHandler = new ItemHandler(guiRenderer, gui, inventory);
 
 let animatedTestMesh: AnimatedGraphicsBundle = null;
 scene
-  .addNewAnimatedMesh("Assets/gltf/VampireDance.gltf", "Assets/gltf/VampireDanceTextures/Vampire_diffuse.png", "CSS:rgb(0,0,0)")
+  .addNewAnimatedMesh(
+    "Assets/gltf/VampireDance.gltf",
+    "Assets/gltf/VampireDanceTextures/Vampire_diffuse.png",
+    "CSS:rgb(0,0,0)"
+  )
   .then((aMeshBundle) => {
     animatedTestMesh = aMeshBundle;
     vec3.set(animatedTestMesh.transform.position, 15.0, 1.0, 12.0);
