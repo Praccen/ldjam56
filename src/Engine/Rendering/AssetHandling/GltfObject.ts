@@ -1,6 +1,16 @@
 import { mat4, quat, vec3 } from "gl-matrix";
 import Transform from "../../Shared/Transform";
 
+const glTypeToTypedArrayMap = {
+    5120: Int8Array,    // gl.BYTE
+    5121: Uint8Array,   // gl.UNSIGNED_BYTE
+    5122: Int16Array,   // gl.SHORT
+    5123: Uint16Array,  // gl.UNSIGNED_SHORT
+    5124: Int32Array,   // gl.INT
+    5125: Uint32Array,  // gl.UNSIGNED_INT
+    5126: Float32Array, // gl.FLOAT
+  }
+
 const setPropertyWithoutTypeConversion = function (
   gltfNode: Object,
   nodeMemberName: string,
@@ -335,7 +345,7 @@ export default class GltfObject {
   private getBufferInfoFromAttribute(
     primitive: GltfPrimitive,
     attribute: string
-  ): { buffer: number; offset: number; length: number; data: Float32Array } {
+  ): { buffer: number; offset: number; length: number; data: Buffer } {
     const bufferView =
       this.bufferViews[
         this.accessors[primitive.attributes[attribute]].bufferView
@@ -347,7 +357,7 @@ export default class GltfObject {
       buffer: buffer,
       offset: offset,
       length: length,
-      data: new Float32Array(
+      data: new glTypeToTypedArrayMap[this.accessors[primitive.attributes[attribute]].componentType](
         this.gltfJsonContent.buffers[buffer],
         offset,
         length
@@ -359,7 +369,7 @@ export default class GltfObject {
     buffer: number;
     offset: number;
     length: number;
-    data: Uint16Array;
+    data: Buffer;
   } {
     const bufferView =
       this.bufferViews[this.accessors[primitive.indices].bufferView];
@@ -370,7 +380,7 @@ export default class GltfObject {
       buffer: buffer,
       offset: offset,
       length: length,
-      data: new Uint16Array(
+      data: new glTypeToTypedArrayMap[this.accessors[primitive.indices].componentType](
         this.gltfJsonContent.buffers[buffer],
         offset,
         length

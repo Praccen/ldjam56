@@ -150,7 +150,8 @@ let animatedTestMesh: AnimatedGraphicsBundle = null;
 scene
   .addNewAnimatedMesh(
     "Assets/gltf/VampireDance.gltf",
-    "Assets/gltf/VampireDanceTextures/Vampire_diffuse.png",
+    // "Assets/gltf/VampireDanceTextures/Vampire_diffuse.png",
+    "CSS:rgb(255,0,0)",
     "CSS:rgb(0,0,0)"
   )
   .then((aMeshBundle) => {

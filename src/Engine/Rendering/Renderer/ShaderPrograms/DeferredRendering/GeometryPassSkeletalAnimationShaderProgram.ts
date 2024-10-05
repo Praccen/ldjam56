@@ -32,7 +32,7 @@ void main() {
                 getBoneMatrix(inBoneIdx[2]) * inWeight[2] +
                 getBoneMatrix(inBoneIdx[3]) * inWeight[3];
 
-    vec4 worldPos = modelMatrix * skinMatrix * vec4(inPosition, 1.0);
+    vec4 worldPos = modelMatrix * vec4(inPosition, 1.0);
 
 	mat3 normalMatrix = mat3(modelMatrix);
 	normalMatrix = inverse(normalMatrix);
