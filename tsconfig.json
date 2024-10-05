@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
+    "target": "ES2015",
+    "allowJs": true,
+    "module": "CommonJS",
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*"]
+}

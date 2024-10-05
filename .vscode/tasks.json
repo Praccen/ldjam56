@@ -1,0 +1,37 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Engine build",
+			"type": "npm",
+			"script": "build",
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [],
+			"detail": "tsup"
+		},
+		{
+			"label": "Game build",
+			"type": "shell",
+			"command": "cd ./Games/ldjam56 ; npm run build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"dependsOn": ["Engine build"],
+			"problemMatcher": []
+		},
+		{
+			"label": "Game watch",
+			"type": "shell",
+			"command": "cd ./Games/ldjam56 ; npm run dev",
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": []
+		}
+	]
+}
