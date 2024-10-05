@@ -35,12 +35,12 @@ void main() {
 `;
 
 export default class SkyboxShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "SkyboxShaderProgram", skyboxVertexSrc, skyboxFragmentSrc);
+  constructor(gl: WebGL2RenderingContext) {
+    super(gl, "SkyboxShaderProgram", skyboxVertexSrc, skyboxFragmentSrc);
 
-		this.setUniformLocation("skybox");
-		this.gl.uniform1i(this.uniformBindings["skybox"], 0);
+    this.setUniformLocation("skybox");
+    this.gl.uniform1i(this.uniformBindings["skybox"], 0);
 
-		this.setUniformLocation("viewProjMatrix");
-	}
+    this.setUniformLocation("viewProjMatrix");
+  }
 }

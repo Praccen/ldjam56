@@ -23,16 +23,21 @@ void main()
 }`;
 
 export default class PointShadowInstancedShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "PointShadowInstanced", pointShadowVertexShaderSrc, pointShadowFragmentShaderSrc);
+  constructor(gl: WebGL2RenderingContext) {
+    super(
+      gl,
+      "PointShadowInstanced",
+      pointShadowVertexShaderSrc,
+      pointShadowFragmentShaderSrc
+    );
 
-		this.use();
+    this.use();
 
-		this.setUniformLocation("lightSpaceMatrix");
-		this.setUniformLocation("textureMatrix");
-		this.setUniformLocation("cameraPos");
+    this.setUniformLocation("lightSpaceMatrix");
+    this.setUniformLocation("textureMatrix");
+    this.setUniformLocation("cameraPos");
 
-		this.setUniformLocation("diffuse");
-		this.gl.uniform1i(this.getUniformLocation("diffuse")[0], 0);
-	}
+    this.setUniformLocation("diffuse");
+    this.gl.uniform1i(this.getUniformLocation("diffuse")[0], 0);
+  }
 }

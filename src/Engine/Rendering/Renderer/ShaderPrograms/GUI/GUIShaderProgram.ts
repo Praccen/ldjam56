@@ -40,17 +40,17 @@ void main() {
 `;
 
 export default class GUIShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "GUIShaderProgram", guiVertexShaderSrc, guiFragmentSrc);
+  constructor(gl: WebGL2RenderingContext) {
+    super(gl, "GUIShaderProgram", guiVertexShaderSrc, guiFragmentSrc);
 
-		this.setUniformLocation("modelMatrix");
-		this.setUniformLocation("textureMatrix");
-		this.setUniformLocation("normalMatrix");
-		this.setUniformLocation("textureMatrix");
-		this.setUniformLocation("viewProjMatrix");
-		
-		this.setUniformLocation("uTexture");
+    this.setUniformLocation("modelMatrix");
+    this.setUniformLocation("textureMatrix");
+    this.setUniformLocation("normalMatrix");
+    this.setUniformLocation("textureMatrix");
+    this.setUniformLocation("viewProjMatrix");
 
-		this.gl.uniform1i(this.uniformBindings["uTexture"], 0);
-	}
+    this.setUniformLocation("uTexture");
+
+    this.gl.uniform1i(this.uniformBindings["uTexture"], 0);
+  }
 }

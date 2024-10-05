@@ -3,18 +3,18 @@ import ShaderProgram from "../../Renderer/ShaderPrograms/ShaderProgram";
 import CubeMap from "../../AssetHandling/Textures/CubeMap";
 
 export default class Skybox extends GraphicsObject {
-	// Public
-	texture: CubeMap;
+  // Public
+  texture: CubeMap;
 
-	// Private
-	private vertices: Float32Array;
-	private indices: Int32Array;
+  // Private
+  private vertices: Float32Array;
+  private indices: Int32Array;
 
-	constructor(gl: WebGL2RenderingContext, texture: CubeMap) {
-		super(gl);
+  constructor(gl: WebGL2RenderingContext, texture: CubeMap) {
+    super(gl);
 
-		// prettier-ignore
-		this.vertices = new Float32Array([ 
+    // prettier-ignore
+    this.vertices = new Float32Array([ 
             // positions
             -0.5,  0.5, -0.5,	/*0*/
             -0.5, -0.5, -0.5,	/*1*/
@@ -26,8 +26,8 @@ export default class Skybox extends GraphicsObject {
              0.5,  0.5,  0.5,	/*7*/
         ]);
 
-		// prettier-ignore
-		this.indices = new Int32Array([
+    // prettier-ignore
+    this.indices = new Int32Array([
             0, 1, 2,
             0, 2, 3,
 			
@@ -46,28 +46,33 @@ export default class Skybox extends GraphicsObject {
 			1, 5, 6, 
 			1, 6, 2,
         ]);
-		this.setVertexData(this.vertices);
-		this.setIndexData(this.indices);
+    this.setVertexData(this.vertices);
+    this.setIndexData(this.indices);
 
-		this.texture = texture;
-	}
+    this.texture = texture;
+  }
 
-	setupVertexAttributePointers() {
-		// Change if input layout changes in shaders
-		const stride = 3 * 4;
-		this.gl.vertexAttribPointer(0, 3, this.gl.FLOAT, false, stride, 0);
-		this.gl.enableVertexAttribArray(0);
-	}
-	
-	getNumVertices(): number {
-		return this.indices.length;
-	}
+  setupVertexAttributePointers() {
+    // Change if input layout changes in shaders
+    const stride = 3 * 4;
+    this.gl.vertexAttribPointer(0, 3, this.gl.FLOAT, false, stride, 0);
+    this.gl.enableVertexAttribArray(0);
+  }
 
-	draw() {
-		this.bindVAO();
+  getNumVertices(): number {
+    return this.indices.length;
+  }
 
-		this.texture.bind();
+  draw() {
+    this.bindVAO();
 
-		this.gl.drawElements(this.gl.TRIANGLES, this.indices.length, this.gl.UNSIGNED_INT, 0);
-	}
+    this.texture.bind();
+
+    this.gl.drawElements(
+      this.gl.TRIANGLES,
+      this.indices.length,
+      this.gl.UNSIGNED_INT,
+      0
+    );
+  }
 }

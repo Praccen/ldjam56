@@ -27,232 +27,281 @@ import GeometryPassSkeletalAnimationShaderProgram from "./ShaderPrograms/Deferre
 import DirectionalShadowSkeletalAnimationShaderProgram from "./ShaderPrograms/ShadowMapping/DirectionalShadowSkeletalAnimationShaderProgram";
 import PointShadowSkeletalAnimationShaderProgram from "./ShaderPrograms/ShadowMapping/PointShadowSkeletalAnimationShaderProgram";
 
-export default class Renderer3D extends RendererBase{
-	// ---- Multi use ----
-	screenQuadShaderProgram: ScreenQuadShaderProgram;
-	// -------------------
+export default class Renderer3D extends RendererBase {
+  // ---- Multi use ----
+  screenQuadShaderProgram: ScreenQuadShaderProgram;
+  // -------------------
 
-	// ---- Shadows ----
-	directionalShadowShaderProgram: DirectionalShadowShaderProgram;
-	directionalShaderInstancedShaderProgram: DirectionalShadowInstancedShaderProgram;
-	directionalShadowSkeletalAnimationShaderProgram: DirectionalShadowSkeletalAnimationShaderProgram;
-	private directionalShadowRenderPass: DirectionalShadowRenderPass;
-	pointShadowShaderProgram: PointShadowShaderProgram;
-	pointShadowInstancedShaderProgram: PointShadowInstancedShaderProgram;
-	pointShadowSkeletalAnimationShaderProgram: PointShadowSkeletalAnimationShaderProgram;
-	private pointShadowRenderPass: PointShadowRenderPass;
-	// -----------------
+  // ---- Shadows ----
+  directionalShadowShaderProgram: DirectionalShadowShaderProgram;
+  directionalShaderInstancedShaderProgram: DirectionalShadowInstancedShaderProgram;
+  directionalShadowSkeletalAnimationShaderProgram: DirectionalShadowSkeletalAnimationShaderProgram;
+  private directionalShadowRenderPass: DirectionalShadowRenderPass;
+  pointShadowShaderProgram: PointShadowShaderProgram;
+  pointShadowInstancedShaderProgram: PointShadowInstancedShaderProgram;
+  pointShadowSkeletalAnimationShaderProgram: PointShadowSkeletalAnimationShaderProgram;
+  private pointShadowRenderPass: PointShadowRenderPass;
+  // -----------------
 
-	// ---- Deferred rendering ----
-	geometryPassShaderProgram: GeometryPassShaderProgram;
-	geometryPassInstancedShaderProgram: GeometryPassInstancedShaderProgram;
-	
-	geometryPassSkeletalAnimationShaderProgram: GeometryPassSkeletalAnimationShaderProgram;
-	private geometryRenderPass: GeometryRenderPass;
-	lightingPassShaderProgram: LightingPassShaderProgram;
-	private lightingRenderPass: LightingRenderPass;
-	// ----------------------------
+  // ---- Deferred rendering ----
+  geometryPassShaderProgram: GeometryPassShaderProgram;
+  geometryPassInstancedShaderProgram: GeometryPassInstancedShaderProgram;
 
-	// ---- Skybox ----
-	skyboxShaderProgram: SkyboxShaderProgram;
-	private useSkybox: boolean;
-	private skyboxRenderPass: SkyboxRenderPass;
-	// ----------------
+  geometryPassSkeletalAnimationShaderProgram: GeometryPassSkeletalAnimationShaderProgram;
+  private geometryRenderPass: GeometryRenderPass;
+  lightingPassShaderProgram: LightingPassShaderProgram;
+  private lightingRenderPass: LightingRenderPass;
+  // ----------------------------
 
-	// ---- Particles ----
-	particleShaderProgram: ParticleShaderProgram;
-	private particleRenderPass: ParticleRenderPass;
-	// -------------------
+  // ---- Skybox ----
+  skyboxShaderProgram: SkyboxShaderProgram;
+  private useSkybox: boolean;
+  private skyboxRenderPass: SkyboxRenderPass;
+  // ----------------
 
-	// ---- Volumetric God Rays ----
-	volumetricLightingShaderProgram: VolumetricLightingShaderProgram;
-	volumetricCombineShaderProgram: VolumetricCombineShaderProgram;
-	useVolumetric: boolean;
-	private volumetricLightingPass: VolumetricLightingPass;
-	// -----------------------------
+  // ---- Particles ----
+  particleShaderProgram: ParticleShaderProgram;
+  private particleRenderPass: ParticleRenderPass;
+  // -------------------
 
-	// ---- Finished output ----
-	private finishedFramebuffer: Framebuffer;
-	private finishedOutputRenderPass: ScreenQuadPass;
-	// -------------------------
-	
-	constructor() {
-		super();
+  // ---- Volumetric God Rays ----
+  volumetricLightingShaderProgram: VolumetricLightingShaderProgram;
+  volumetricCombineShaderProgram: VolumetricCombineShaderProgram;
+  useVolumetric: boolean;
+  private volumetricLightingPass: VolumetricLightingPass;
+  // -----------------------------
 
-		// ---- Multi use ----
-		this.screenQuadShaderProgram = new ScreenQuadShaderProgram(this.gl);
-		// -------------------
+  // ---- Finished output ----
+  private finishedFramebuffer: Framebuffer;
+  private finishedOutputRenderPass: ScreenQuadPass;
+  // -------------------------
 
-		// ---- Shadows ----
-		this.directionalShadowShaderProgram = new DirectionalShadowShaderProgram(this.gl);
-		this.directionalShaderInstancedShaderProgram = new DirectionalShadowInstancedShaderProgram(this.gl);
-		this.directionalShadowSkeletalAnimationShaderProgram = new DirectionalShadowSkeletalAnimationShaderProgram(this.gl);
-		this.directionalShadowRenderPass = new DirectionalShadowRenderPass(
-			this.gl, 
-			this.directionalShadowShaderProgram, 
-			this.directionalShaderInstancedShaderProgram,
-			this.directionalShadowSkeletalAnimationShaderProgram
-		);
+  constructor() {
+    super();
 
-		this.pointShadowShaderProgram = new PointShadowShaderProgram(this.gl);
-		this.pointShadowInstancedShaderProgram = new PointShadowInstancedShaderProgram(this.gl);
-		this.pointShadowSkeletalAnimationShaderProgram = new PointShadowSkeletalAnimationShaderProgram(this.gl);
-		this.pointShadowRenderPass = new PointShadowRenderPass(
-			this.gl, 
-			this.pointShadowShaderProgram,
-			this.pointShadowInstancedShaderProgram,
-			this.pointShadowSkeletalAnimationShaderProgram
-		);
-		// -----------------
+    // ---- Multi use ----
+    this.screenQuadShaderProgram = new ScreenQuadShaderProgram(this.gl);
+    // -------------------
 
-		// ---- Deferred rendering ----
-		this.geometryPassShaderProgram = new GeometryPassShaderProgram(this.gl);
-		this.geometryPassInstancedShaderProgram = new GeometryPassInstancedShaderProgram(this.gl);
-		this.geometryPassSkeletalAnimationShaderProgram = new GeometryPassSkeletalAnimationShaderProgram(this.gl);
-		this.geometryRenderPass = new GeometryRenderPass(this.gl, this.geometryPassShaderProgram, this.geometryPassInstancedShaderProgram, this.geometryPassSkeletalAnimationShaderProgram);
+    // ---- Shadows ----
+    this.directionalShadowShaderProgram = new DirectionalShadowShaderProgram(
+      this.gl
+    );
+    this.directionalShaderInstancedShaderProgram =
+      new DirectionalShadowInstancedShaderProgram(this.gl);
+    this.directionalShadowSkeletalAnimationShaderProgram =
+      new DirectionalShadowSkeletalAnimationShaderProgram(this.gl);
+    this.directionalShadowRenderPass = new DirectionalShadowRenderPass(
+      this.gl,
+      this.directionalShadowShaderProgram,
+      this.directionalShaderInstancedShaderProgram,
+      this.directionalShadowSkeletalAnimationShaderProgram
+    );
 
-		this.lightingPassShaderProgram = new LightingPassShaderProgram(this.gl);
-		let textureArray = new Array<Texture>();
-		for (let i = 0; i < this.geometryRenderPass.outputFramebuffer.textures.length; i++) {
-			textureArray.push(this.geometryRenderPass.outputFramebuffer.textures[i]);
-		}
-		textureArray.push(this.directionalShadowRenderPass.shadowBuffer.depthTexture);
-		this.lightingRenderPass = new LightingRenderPass(this.gl, this.lightingPassShaderProgram, textureArray);
-		// ----------------------------
+    this.pointShadowShaderProgram = new PointShadowShaderProgram(this.gl);
+    this.pointShadowInstancedShaderProgram =
+      new PointShadowInstancedShaderProgram(this.gl);
+    this.pointShadowSkeletalAnimationShaderProgram =
+      new PointShadowSkeletalAnimationShaderProgram(this.gl);
+    this.pointShadowRenderPass = new PointShadowRenderPass(
+      this.gl,
+      this.pointShadowShaderProgram,
+      this.pointShadowInstancedShaderProgram,
+      this.pointShadowSkeletalAnimationShaderProgram
+    );
+    // -----------------
 
-		// ---- Skybox ----
-		this.skyboxShaderProgram = new SkyboxShaderProgram(this.gl);
-		this.useSkybox = false;
-		this.skyboxRenderPass = new SkyboxRenderPass(this.gl, this.skyboxShaderProgram);
-		// ----------------
+    // ---- Deferred rendering ----
+    this.geometryPassShaderProgram = new GeometryPassShaderProgram(this.gl);
+    this.geometryPassInstancedShaderProgram =
+      new GeometryPassInstancedShaderProgram(this.gl);
+    this.geometryPassSkeletalAnimationShaderProgram =
+      new GeometryPassSkeletalAnimationShaderProgram(this.gl);
+    this.geometryRenderPass = new GeometryRenderPass(
+      this.gl,
+      this.geometryPassShaderProgram,
+      this.geometryPassInstancedShaderProgram,
+      this.geometryPassSkeletalAnimationShaderProgram
+    );
 
-		// ---- Paricles ----
-		this.particleShaderProgram = new ParticleShaderProgram(this.gl);
-		this.particleRenderPass = new ParticleRenderPass(this.gl, this.particleShaderProgram);
-		// ------------------
+    this.lightingPassShaderProgram = new LightingPassShaderProgram(this.gl);
+    let textureArray = new Array<Texture>();
+    for (
+      let i = 0;
+      i < this.geometryRenderPass.outputFramebuffer.textures.length;
+      i++
+    ) {
+      textureArray.push(this.geometryRenderPass.outputFramebuffer.textures[i]);
+    }
+    textureArray.push(
+      this.directionalShadowRenderPass.shadowBuffer.depthTexture
+    );
+    this.lightingRenderPass = new LightingRenderPass(
+      this.gl,
+      this.lightingPassShaderProgram,
+      textureArray
+    );
+    // ----------------------------
 
-		// ---- Volumetric God Rays ----
-		this.volumetricLightingPass = new VolumetricLightingPass(
-			this.gl, 
-			new VolumetricLightingShaderProgram(this.gl), 
-			new VolumetricCombineShaderProgram(this.gl),
-			this.screenQuadShaderProgram,
-			this.geometryRenderPass.outputFramebuffer.textures[0], 
-			this.textureStore.getTexture("CSS:rgb(255, 255, 255"),
-			this.directionalShadowRenderPass.shadowBuffer.depthTexture);
-		this.useVolumetric = false;
-		// -----------------------------
+    // ---- Skybox ----
+    this.skyboxShaderProgram = new SkyboxShaderProgram(this.gl);
+    this.useSkybox = false;
+    this.skyboxRenderPass = new SkyboxRenderPass(
+      this.gl,
+      this.skyboxShaderProgram
+    );
+    // ----------------
 
-		this.finishedFramebuffer = new Framebuffer(
-			this.gl,
-			this.width,
-			this.height,
-			[new Texture(this.gl, false)],
-			null
-		);
+    // ---- Paricles ----
+    this.particleShaderProgram = new ParticleShaderProgram(this.gl);
+    this.particleRenderPass = new ParticleRenderPass(
+      this.gl,
+      this.particleShaderProgram
+    );
+    // ------------------
 
-		// Assign finished framebuffer to those render passes that should target it
-		this.volumetricLightingPass.outputBuffer = this.finishedFramebuffer;
-		this.particleRenderPass.outputBuffer = this.finishedFramebuffer;
+    // ---- Volumetric God Rays ----
+    this.volumetricLightingPass = new VolumetricLightingPass(
+      this.gl,
+      new VolumetricLightingShaderProgram(this.gl),
+      new VolumetricCombineShaderProgram(this.gl),
+      this.screenQuadShaderProgram,
+      this.geometryRenderPass.outputFramebuffer.textures[0],
+      this.textureStore.getTexture("CSS:rgb(255, 255, 255"),
+      this.directionalShadowRenderPass.shadowBuffer.depthTexture
+    );
+    this.useVolumetric = false;
+    // -----------------------------
 
-		this.finishedOutputRenderPass = new ScreenQuadPass(this.gl, this.screenQuadShaderProgram, this.finishedFramebuffer.textures[0]);
-	}
+    this.finishedFramebuffer = new Framebuffer(
+      this.gl,
+      this.width,
+      this.height,
+      [new Texture(this.gl, false)],
+      null
+    );
 
-	setSize(x: number, y: number, updateStyle: boolean = false) {
-		super.setSize(x, y, updateStyle);
+    // Assign finished framebuffer to those render passes that should target it
+    this.volumetricLightingPass.outputBuffer = this.finishedFramebuffer;
+    this.particleRenderPass.outputBuffer = this.finishedFramebuffer;
 
-		this.geometryRenderPass.setResolution(x, y);
-		this.finishedFramebuffer.setProportions(x, y);
-		this.volumetricLightingPass.setResolution(x, y);
-	}
+    this.finishedOutputRenderPass = new ScreenQuadPass(
+      this.gl,
+      this.screenQuadShaderProgram,
+      this.finishedFramebuffer.textures[0]
+    );
+  }
 
-	setSkybox(path?: string) {
-		if (path != undefined) {
-			this.skyboxRenderPass.setSkybox(this.textureStore.getCubeMap(path));
-			// this.skyboxRenderPass.setSkybox(this.scene.pointLights[0].pointShadowDepthMap);
-			this.useSkybox = true;
-		}
-		else {
-			this.useSkybox = false;
-		}
-	}
+  setSize(x: number, y: number, updateStyle: boolean = false) {
+    super.setSize(x, y, updateStyle);
 
-	setFogDensity(density: number) {
-		this.volumetricLightingPass.fogDensity = density;
-	}
+    this.geometryRenderPass.setResolution(x, y);
+    this.finishedFramebuffer.setProportions(x, y);
+    this.volumetricLightingPass.setResolution(x, y);
+  }
 
-	setFogRenderScale(scale: number) {
-		this.volumetricLightingPass.setRenderScale(scale);
-	}
+  setSkybox(path?: string) {
+    if (path != undefined) {
+      this.skyboxRenderPass.setSkybox(this.textureStore.getCubeMap(path));
+      // this.skyboxRenderPass.setSkybox(this.scene.pointLights[0].pointShadowDepthMap);
+      this.useSkybox = true;
+    } else {
+      this.useSkybox = false;
+    }
+  }
 
-	setFogBlur(blur: boolean) {
-		this.volumetricLightingPass.blur = blur;
-	}
+  setFogDensity(density: number) {
+    this.volumetricLightingPass.fogDensity = density;
+  }
 
-	setFogTexture(path: string) {
-		this.volumetricLightingPass.setFogTexture(this.textureStore.getTexture(path));
-	}
+  setFogRenderScale(scale: number) {
+    this.volumetricLightingPass.setRenderScale(scale);
+  }
 
-	render(scene: Scene, camera: Camera, saveScreenshot: boolean = false, screenshotName: string = "screencapture") {
-		this.gl.enable(this.gl.DEPTH_TEST);
+  setFogBlur(blur: boolean) {
+    this.volumetricLightingPass.blur = blur;
+  }
 
-		scene.calculateAllTransforms();
+  setFogTexture(path: string) {
+    this.volumetricLightingPass.setFogTexture(
+      this.textureStore.getTexture(path)
+    );
+  }
 
-		// ---- Shadow pass ----
-		this.directionalShadowRenderPass.draw(scene);
-		this.pointShadowRenderPass.draw(scene);
-		// ---------------------
+  render(
+    scene: Scene,
+    camera: Camera,
+    saveScreenshot: boolean = false,
+    screenshotName: string = "screencapture"
+  ) {
+    this.gl.enable(this.gl.DEPTH_TEST);
 
-		// ---- Geometry pass ----
-		this.geometryRenderPass.draw(scene, camera);
-		// -----------------------
+    scene.calculateAllTransforms();
 
-		// Geometry pass over, start rendering to particle render pass output
-		this.particleRenderPass.bindFramebuffers();
+    // ---- Shadow pass ----
+    this.directionalShadowRenderPass.draw(scene);
+    this.pointShadowRenderPass.draw(scene);
+    // ---------------------
 
-		// Clear the output with the actual clear colour we have set
-		this.gl.clearColor(this.clearColour.r, this.clearColour.g, this.clearColour.b, this.clearColour.a);
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT | this.gl.STENCIL_BUFFER_BIT);
+    // ---- Geometry pass ----
+    this.geometryRenderPass.draw(scene, camera);
+    // -----------------------
 
-		// ---- Lighting pass ----
-		this.lightingRenderPass.draw(scene, camera);
-		// -----------------------
+    // Geometry pass over, start rendering to particle render pass output
+    this.particleRenderPass.bindFramebuffers();
 
-		// Copy the depth buffer information from the gBuffer to the current depth buffer
-		this.geometryRenderPass.outputFramebuffer.bind(this.gl.READ_FRAMEBUFFER);
-		this.gl.blitFramebuffer(
-			0,
-			0,
-			this.width,
-			this.height,
-			0,
-			0,
-			this.width,
-			this.height,
-			this.gl.DEPTH_BUFFER_BIT,
-			this.gl.NEAREST
-		);
+    // Clear the output with the actual clear colour we have set
+    this.gl.clearColor(
+      this.clearColour.r,
+      this.clearColour.g,
+      this.clearColour.b,
+      this.clearColour.a
+    );
+    this.gl.clear(
+      this.gl.COLOR_BUFFER_BIT |
+        this.gl.DEPTH_BUFFER_BIT |
+        this.gl.STENCIL_BUFFER_BIT
+    );
 
-		// ---- Skybox ----
-		if (this.useSkybox) {
-			this.skyboxRenderPass.draw(camera);
-		}
-		// ----------------
+    // ---- Lighting pass ----
+    this.lightingRenderPass.draw(scene, camera);
+    // -----------------------
 
-		// ---- Particles ----
-		this.particleRenderPass.draw(scene, camera, this.rendererStartTime);
-		// -------------------
+    // Copy the depth buffer information from the gBuffer to the current depth buffer
+    this.geometryRenderPass.outputFramebuffer.bind(this.gl.READ_FRAMEBUFFER);
+    this.gl.blitFramebuffer(
+      0,
+      0,
+      this.width,
+      this.height,
+      0,
+      0,
+      this.width,
+      this.height,
+      this.gl.DEPTH_BUFFER_BIT,
+      this.gl.NEAREST
+    );
 
-		// ---- Volumetric God Rays ----
-		if (this.useVolumetric) {
-			this.volumetricLightingPass.draw(scene, camera, this.rendererStartTime);
-		}
-		// -----------------------------
+    // ---- Skybox ----
+    if (this.useSkybox) {
+      this.skyboxRenderPass.draw(camera);
+    }
+    // ----------------
 
-		this.finishedOutputRenderPass.draw();
+    // ---- Particles ----
+    this.particleRenderPass.draw(scene, camera, this.rendererStartTime);
+    // -------------------
 
-        if (saveScreenshot) {
-            this.takeScreenshot(screenshotName);
-        }
-	}
+    // ---- Volumetric God Rays ----
+    if (this.useVolumetric) {
+      this.volumetricLightingPass.draw(scene, camera, this.rendererStartTime);
+    }
+    // -----------------------------
+
+    this.finishedOutputRenderPass.draw();
+
+    if (saveScreenshot) {
+      this.takeScreenshot(screenshotName);
+    }
+  }
 }

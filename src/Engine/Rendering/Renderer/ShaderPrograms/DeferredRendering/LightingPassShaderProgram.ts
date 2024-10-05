@@ -5,21 +5,21 @@ export const pointLightsToAllocate: number = 10;
 export let pointShadowsToAllocate: number = 2;
 
 function getFragSrc(gl: WebGL2RenderingContext) {
-	pointShadowsToAllocate = Math.min(
-		pointShadowsToAllocate,
-		gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS) - 5
-	);
-	
-	let lightingFragmentShaderSrc =
-		`#version 300 es
+  pointShadowsToAllocate = Math.min(
+    pointShadowsToAllocate,
+    gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS) - 5
+  );
+
+  let lightingFragmentShaderSrc =
+    `#version 300 es
 	precision highp float;
 	
 	#define NR_POINT_LIGHTS ` +
-		pointLightsToAllocate +
-		`
+    pointLightsToAllocate +
+    `
 	#define NR_POINT_SHADOWS ` +
-		pointShadowsToAllocate +
-		`
+    pointShadowsToAllocate +
+    `
 	
 	in vec2 texCoords;
 	
@@ -191,34 +191,34 @@ function getFragSrc(gl: WebGL2RenderingContext) {
 	fragToLight.z *= -1.0;
 	// use the light to fragment vector to sample from the depth map
 	float closestDepth = 1.0;`;
-	// Below is ugly, but I have to unroll the loop to be able to acces the pointDepthMaps array with a compile time index, as run-time index is not allowed to access a sampler
-	for (let i = 0; i < pointShadowsToAllocate; i++) {
-		if (i == 0) {
-			lightingFragmentShaderSrc +=
-				`
+  // Below is ugly, but I have to unroll the loop to be able to acces the pointDepthMaps array with a compile time index, as run-time index is not allowed to access a sampler
+  for (let i = 0; i < pointShadowsToAllocate; i++) {
+    if (i == 0) {
+      lightingFragmentShaderSrc +=
+        `
 	if (light.pointDepthMapIndex == ` +
-				i +
-				`) {
+        i +
+        `) {
 		closestDepth = texture(pointDepthMaps[` +
-				i +
-				`], fragToLight).r;
+        i +
+        `], fragToLight).r;
 	}
 	`;
-		} else {
-			lightingFragmentShaderSrc +=
-				`
+    } else {
+      lightingFragmentShaderSrc +=
+        `
 	else if (light.pointDepthMapIndex == ` +
-				i +
-				`) {
+        i +
+        `) {
 		closestDepth = texture(pointDepthMaps[` +
-				i +
-				`], fragToLight).r;
+        i +
+        `], fragToLight).r;
 	}
 	`;
-		}
-	}
-	
-	lightingFragmentShaderSrc += `
+    }
+  }
+
+  lightingFragmentShaderSrc += `
 	// it is currently in linear range between [0,1]. Re-transform back to original value
 	closestDepth *= far_plane;
 	// now get current linear depth as the length between the fragment and light position
@@ -231,49 +231,51 @@ function getFragSrc(gl: WebGL2RenderingContext) {
 	}
 	`;
 
-	return lightingFragmentShaderSrc;
+  return lightingFragmentShaderSrc;
 }
 
-
 export default class LightingPassShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "LightingPass", screenQuadVertexSrc, getFragSrc(gl));
+  constructor(gl: WebGL2RenderingContext) {
+    super(gl, "LightingPass", screenQuadVertexSrc, getFragSrc(gl));
 
-		this.use();
+    this.use();
 
-		this.setUniformLocation("gPosition");
-		this.setUniformLocation("gNormal");
-		this.setUniformLocation("gColourSpec");
-		this.setUniformLocation("gEmission");
-		this.setUniformLocation("depthMap");
+    this.setUniformLocation("gPosition");
+    this.setUniformLocation("gNormal");
+    this.setUniformLocation("gColourSpec");
+    this.setUniformLocation("gEmission");
+    this.setUniformLocation("depthMap");
 
-		gl.uniform1i(this.getUniformLocation("gPosition")[0], 0);
-		gl.uniform1i(this.getUniformLocation("gNormal")[0], 1);
-		gl.uniform1i(this.getUniformLocation("gColourSpec")[0], 2);
-		gl.uniform1i(this.getUniformLocation("gEmission")[0], 3);
-		gl.uniform1i(this.getUniformLocation("depthMap")[0], 4);
+    gl.uniform1i(this.getUniformLocation("gPosition")[0], 0);
+    gl.uniform1i(this.getUniformLocation("gNormal")[0], 1);
+    gl.uniform1i(this.getUniformLocation("gColourSpec")[0], 2);
+    gl.uniform1i(this.getUniformLocation("gEmission")[0], 3);
+    gl.uniform1i(this.getUniformLocation("depthMap")[0], 4);
 
-		for (let i = 0; i < pointShadowsToAllocate; i++) {
-			this.setUniformLocation("pointDepthMaps[" + i + "]");
-			gl.uniform1i(this.getUniformLocation("pointDepthMaps[" + i + "]")[0], 5 + i);
-		}
+    for (let i = 0; i < pointShadowsToAllocate; i++) {
+      this.setUniformLocation("pointDepthMaps[" + i + "]");
+      gl.uniform1i(
+        this.getUniformLocation("pointDepthMaps[" + i + "]")[0],
+        5 + i
+      );
+    }
 
-		for (let i = 0; i < pointLightsToAllocate; i++) {
-			this.setUniformLocation("pointLights[" + i + "].position");
-			this.setUniformLocation("pointLights[" + i + "].colour");
+    for (let i = 0; i < pointLightsToAllocate; i++) {
+      this.setUniformLocation("pointLights[" + i + "].position");
+      this.setUniformLocation("pointLights[" + i + "].colour");
 
-			this.setUniformLocation("pointLights[" + i + "].constant");
-			this.setUniformLocation("pointLights[" + i + "].linear");
-			this.setUniformLocation("pointLights[" + i + "].quadratic");
+      this.setUniformLocation("pointLights[" + i + "].constant");
+      this.setUniformLocation("pointLights[" + i + "].linear");
+      this.setUniformLocation("pointLights[" + i + "].quadratic");
 
-			this.setUniformLocation("pointLights[" + i + "].pointDepthMapIndex");
-		}
+      this.setUniformLocation("pointLights[" + i + "].pointDepthMapIndex");
+    }
 
-		this.setUniformLocation("directionalLight.direction");
-		this.setUniformLocation("directionalLight.colour");
-		this.setUniformLocation("directionalLight.ambientMultiplier");
-		this.setUniformLocation("nrOfPointLights");
-		this.setUniformLocation("camPos");
-		this.setUniformLocation("lightSpaceMatrix");
-	}
+    this.setUniformLocation("directionalLight.direction");
+    this.setUniformLocation("directionalLight.colour");
+    this.setUniformLocation("directionalLight.ambientMultiplier");
+    this.setUniformLocation("nrOfPointLights");
+    this.setUniformLocation("camPos");
+    this.setUniformLocation("lightSpaceMatrix");
+  }
 }

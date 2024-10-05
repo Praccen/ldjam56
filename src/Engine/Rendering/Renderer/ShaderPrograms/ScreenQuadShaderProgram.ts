@@ -28,11 +28,16 @@ void main() {
 `;
 
 export default class ScreenQuadShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "ScreenQuadShaderProgram", screenQuadVertexSrc, screenQuadFragmentSrc);
+  constructor(gl: WebGL2RenderingContext) {
+    super(
+      gl,
+      "ScreenQuadShaderProgram",
+      screenQuadVertexSrc,
+      screenQuadFragmentSrc
+    );
 
-		this.setUniformLocation("screenTexture");
+    this.setUniformLocation("screenTexture");
 
-		this.gl.uniform1i(this.uniformBindings["screenTexture"], 0);
-	}
+    this.gl.uniform1i(this.uniformBindings["screenTexture"], 0);
+  }
 }

@@ -21,15 +21,20 @@ void main()
 }`;
 
 export default class DirectionalShadowInstancedShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "DirectionalShadowInstanced", shadowVertexShaderSrc, shadowFragmentShaderSrc);
+  constructor(gl: WebGL2RenderingContext) {
+    super(
+      gl,
+      "DirectionalShadowInstanced",
+      shadowVertexShaderSrc,
+      shadowFragmentShaderSrc
+    );
 
-		this.use();
+    this.use();
 
-		this.setUniformLocation("lightSpaceMatrix");
-		this.setUniformLocation("textureMatrix");
-		
-		this.setUniformLocation("diffuse");
-		this.gl.uniform1i(this.getUniformLocation("diffuse")[0], 0);
-	}
+    this.setUniformLocation("lightSpaceMatrix");
+    this.setUniformLocation("textureMatrix");
+
+    this.setUniformLocation("diffuse");
+    this.gl.uniform1i(this.getUniformLocation("diffuse")[0], 0);
+  }
 }

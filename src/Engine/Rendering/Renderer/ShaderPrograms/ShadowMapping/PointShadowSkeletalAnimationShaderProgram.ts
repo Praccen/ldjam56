@@ -37,23 +37,28 @@ void main() {
 	fragPos = worldPos.xyz;
 
     gl_Position = lightSpaceMatrix * worldPos;
-}`
+}`;
 
 export default class PointShadowSkeletalAnimationShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "PointShadowSkeletalAnimation", pointShadowAnimationVertexShaderSrc, pointShadowFragmentShaderSrc);
+  constructor(gl: WebGL2RenderingContext) {
+    super(
+      gl,
+      "PointShadowSkeletalAnimation",
+      pointShadowAnimationVertexShaderSrc,
+      pointShadowFragmentShaderSrc
+    );
 
-		this.use();
+    this.use();
 
-		this.setUniformLocation("lightSpaceMatrix");
-		this.setUniformLocation("modelMatrix");
-		this.setUniformLocation("textureMatrix");
-		this.setUniformLocation("cameraPos");
-		
-		this.setUniformLocation("diffuse");
-		this.gl.uniform1i(this.getUniformLocation("diffuse")[0], 0);
+    this.setUniformLocation("lightSpaceMatrix");
+    this.setUniformLocation("modelMatrix");
+    this.setUniformLocation("textureMatrix");
+    this.setUniformLocation("cameraPos");
 
-        this.setUniformLocation("boneMatrixTexture");
-		this.gl.uniform1i(this.getUniformLocation("boneMatrixTexture")[0], 3);
-	}
+    this.setUniformLocation("diffuse");
+    this.gl.uniform1i(this.getUniformLocation("diffuse")[0], 0);
+
+    this.setUniformLocation("boneMatrixTexture");
+    this.gl.uniform1i(this.getUniformLocation("boneMatrixTexture")[0], 3);
+  }
 }

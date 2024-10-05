@@ -35,23 +35,27 @@ void main() {
 	texCoords = vec2(textureMatrix * vec4(inTexCoords, 0.0, 1.0));
 
     gl_Position = lightSpaceMatrix * worldPos;
-}`
+}`;
 
 export default class DirectionalShadowSkeletalAnimationShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "DirectionalShadowAnimated", shadowAnimationVertexShaderSrc, shadowFragmentShaderSrc);
+  constructor(gl: WebGL2RenderingContext) {
+    super(
+      gl,
+      "DirectionalShadowAnimated",
+      shadowAnimationVertexShaderSrc,
+      shadowFragmentShaderSrc
+    );
 
-		this.use();
+    this.use();
 
-		this.setUniformLocation("lightSpaceMatrix");
-		this.setUniformLocation("modelMatrix");
-		this.setUniformLocation("textureMatrix");
-		this.setUniformLocation("boneMatrixTexture");
+    this.setUniformLocation("lightSpaceMatrix");
+    this.setUniformLocation("modelMatrix");
+    this.setUniformLocation("textureMatrix");
+    this.setUniformLocation("boneMatrixTexture");
 
-        
-		this.setUniformLocation("diffuse");
+    this.setUniformLocation("diffuse");
 
-		this.gl.uniform1i(this.getUniformLocation("diffuse")[0], 0);
-		this.gl.uniform1i(this.getUniformLocation("boneMatrixTexture")[0], 3);
-	}
+    this.gl.uniform1i(this.getUniformLocation("diffuse")[0], 0);
+    this.gl.uniform1i(this.getUniformLocation("boneMatrixTexture")[0], 3);
+  }
 }

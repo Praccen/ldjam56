@@ -2,9 +2,7 @@ import { defineConfig } from "tsup";
 import tsconfig from "./tsconfig.json";
 
 export default defineConfig((options) => ({
-  entry: [
-    "src/Game.ts"
-  ],
+  entry: ["src/Game.ts"],
   dts: false,
   outDir: "dist",
   format: ["esm"],

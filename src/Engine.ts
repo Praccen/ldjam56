@@ -19,15 +19,23 @@ import Button from "./Engine/Rendering/GUI/Objects/Button";
 import Div from "./Engine/Rendering/GUI/Objects/Div";
 
 // Rendering exports
-export { Renderer3D, Renderer2D, GUIRenderer, Scene, Camera, GraphicsBundle, AnimatedGraphicsBundle}
+export {
+  Renderer3D,
+  Renderer2D,
+  GUIRenderer,
+  Scene,
+  Camera,
+  GraphicsBundle,
+  AnimatedGraphicsBundle,
+};
 // Physics exports
-export { PhysicsScene, PhysicsObject, Ray, MousePicking }
+export { PhysicsScene, PhysicsObject, Ray, MousePicking };
 // Math exports
-export * from "gl-matrix"
+export * from "gl-matrix";
 // Shared exports
-export { Transform }
+export { Transform };
 // GUI exports
-export {TextObject2D, TextObject3D, Slider, Checkbox, Button, Div}
+export { TextObject2D, TextObject3D, Slider, Checkbox, Button, Div };
 
 // Global exports
 export let applicationStartTime = Date.now();

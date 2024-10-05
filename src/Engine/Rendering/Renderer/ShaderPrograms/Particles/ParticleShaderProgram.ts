@@ -78,19 +78,25 @@ void main()
 }`;
 
 export default class ParticleShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "ParticleShaderProgram", particleVertexShaderSrc, particleFragmentShaderSrc, false);
+  constructor(gl: WebGL2RenderingContext) {
+    super(
+      gl,
+      "ParticleShaderProgram",
+      particleVertexShaderSrc,
+      particleFragmentShaderSrc,
+      false
+    );
 
-		this.use();
+    this.use();
 
-		this.setUniformLocation("texture0");
-		this.gl.uniform1i(this.getUniformLocation("texture0")[0], 0);
+    this.setUniformLocation("texture0");
+    this.gl.uniform1i(this.getUniformLocation("texture0")[0], 0);
 
-		this.setUniformLocation("viewProjMatrix");
-		this.setUniformLocation("cameraPos");
-		this.setUniformLocation("currentTime");
-		this.setUniformLocation("fadePerSecond");
-		this.setUniformLocation("sizeChangePerSecond");
-		this.setUniformLocation("lifeTime");
-	}
+    this.setUniformLocation("viewProjMatrix");
+    this.setUniformLocation("cameraPos");
+    this.setUniformLocation("currentTime");
+    this.setUniformLocation("fadePerSecond");
+    this.setUniformLocation("sizeChangePerSecond");
+    this.setUniformLocation("lifeTime");
+  }
 }

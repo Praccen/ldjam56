@@ -34,22 +34,27 @@ void main() {
 }`;
 
 export default class GeometryPassInstancedShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(gl, "GeometryPassInstanced", geometryInstancedVertexShaderSrc, geometryFragmentShaderSrc);
+  constructor(gl: WebGL2RenderingContext) {
+    super(
+      gl,
+      "GeometryPassInstanced",
+      geometryInstancedVertexShaderSrc,
+      geometryFragmentShaderSrc
+    );
 
-		this.use();
+    this.use();
 
-		this.setUniformLocation("viewProjMatrix");
-		this.setUniformLocation("textureMatrix");
+    this.setUniformLocation("viewProjMatrix");
+    this.setUniformLocation("textureMatrix");
 
-		this.setUniformLocation("material.diffuse");
-		this.setUniformLocation("material.specular");
-		this.setUniformLocation("material.emission");
+    this.setUniformLocation("material.diffuse");
+    this.setUniformLocation("material.specular");
+    this.setUniformLocation("material.emission");
 
-		this.setUniformLocation("emissionColor");
+    this.setUniformLocation("emissionColor");
 
-		this.gl.uniform1i(this.getUniformLocation("material.diffuse")[0], 0);
-		this.gl.uniform1i(this.getUniformLocation("material.specular")[0], 1);
-		this.gl.uniform1i(this.getUniformLocation("material.emission")[0], 2);
-	}
+    this.gl.uniform1i(this.getUniformLocation("material.diffuse")[0], 0);
+    this.gl.uniform1i(this.getUniformLocation("material.specular")[0], 1);
+    this.gl.uniform1i(this.getUniformLocation("material.emission")[0], 2);
+  }
 }

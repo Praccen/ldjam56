@@ -2,80 +2,79 @@ import { vec3 } from "gl-matrix";
 import ShaderProgram from "../../Renderer/ShaderPrograms/ShaderProgram";
 
 export default class GraphicsObject {
-	shaderProgram: ShaderProgram;
+  shaderProgram: ShaderProgram;
 
-	// Private
-	private VAO: WebGLVertexArrayObject;
-	private VBO: WebGLBuffer;
-	private EBO: WebGLBuffer;
-	
-	// Protected
-	protected gl: WebGL2RenderingContext;
-	
-	constructor(gl: WebGL2RenderingContext) {
-		this.gl = gl;
+  // Private
+  private VAO: WebGLVertexArrayObject;
+  private VBO: WebGLBuffer;
+  private EBO: WebGLBuffer;
 
-		this.VAO = null;
-		this.VBO = null;
-		this.EBO = null; // Optional
+  // Protected
+  protected gl: WebGL2RenderingContext;
 
-		this.init();
-	}
+  constructor(gl: WebGL2RenderingContext) {
+    this.gl = gl;
 
-	init() {
-		// Create buffers
-		this.VAO = this.gl.createVertexArray();
-		this.VBO = this.gl.createBuffer();
-		this.EBO = this.gl.createBuffer();
+    this.VAO = null;
+    this.VBO = null;
+    this.EBO = null; // Optional
 
-		// Bind buffers
-		this.gl.bindVertexArray(this.VAO);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.VBO);
+    this.init();
+  }
 
-		this.setupVertexAttributePointers();
+  init() {
+    // Create buffers
+    this.VAO = this.gl.createVertexArray();
+    this.VBO = this.gl.createBuffer();
+    this.EBO = this.gl.createBuffer();
 
-		this.gl.bindVertexArray(null);
-	}
+    // Bind buffers
+    this.gl.bindVertexArray(this.VAO);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.VBO);
 
-	bindVAO() {
-		this.gl.bindVertexArray(this.VAO);
-	}
+    this.setupVertexAttributePointers();
 
-	unbindVAO() {
-		this.gl.bindVertexArray(null);
-	}
+    this.gl.bindVertexArray(null);
+  }
 
-	setVertexData(data: Float32Array) {
-		if (data == undefined || data.length == 0) {
-			return;
-		}
-		this.gl.bindVertexArray(this.VAO);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.VBO);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
-		this.gl.bindVertexArray(null);
-	}
+  bindVAO() {
+    this.gl.bindVertexArray(this.VAO);
+  }
 
-	setIndexData(data: Int32Array) {
-		this.gl.bindVertexArray(this.VAO);
+  unbindVAO() {
+    this.gl.bindVertexArray(null);
+  }
 
-		this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.EBO);
-		this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
+  setVertexData(data: Float32Array) {
+    if (data == undefined || data.length == 0) {
+      return;
+    }
+    this.gl.bindVertexArray(this.VAO);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.VBO);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
+    this.gl.bindVertexArray(null);
+  }
 
-		this.gl.bindVertexArray(null);
-	}
+  setIndexData(data: Int32Array) {
+    this.gl.bindVertexArray(this.VAO);
 
-	setupVertexAttributePointers() {}
+    this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.EBO);
+    this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
 
-	setupInstancedVertexAttributePointers() {}
+    this.gl.bindVertexArray(null);
+  }
 
-	getVertexPositions(): Array<vec3> {
-		return null;
-	}
+  setupVertexAttributePointers() {}
 
-	getNumVertices(): number {
-		return null;
-	}
+  setupInstancedVertexAttributePointers() {}
 
-	draw() {
-	}
+  getVertexPositions(): Array<vec3> {
+    return null;
+  }
+
+  getNumVertices(): number {
+    return null;
+  }
+
+  draw() {}
 }

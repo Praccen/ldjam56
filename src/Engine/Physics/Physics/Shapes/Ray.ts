@@ -2,58 +2,58 @@ import Shape from "./Shape";
 import { ReadonlyVec3, mat3, mat4, vec3 } from "gl-matrix";
 
 export default class Ray extends Shape {
-	private start: vec3;
-	private dir: vec3;
-	private inverseMatrix: mat4;
+  private start: vec3;
+  private dir: vec3;
+  private inverseMatrix: mat4;
 
-	constructor() {
-		super();
-		this.start = vec3.create();
-		this.dir = vec3.fromValues(0.0, 0.0, 1.0);
-		this.inverseMatrix = mat4.create();
-	}
+  constructor() {
+    super();
+    this.start = vec3.create();
+    this.dir = vec3.fromValues(0.0, 0.0, 1.0);
+    this.inverseMatrix = mat4.create();
+  }
 
-	setStart(start: ReadonlyVec3) {
-		vec3.copy(this.start, start);
-	}
+  setStart(start: ReadonlyVec3) {
+    vec3.copy(this.start, start);
+  }
 
-	setDir(dir: ReadonlyVec3) {
-		vec3.normalize(this.dir, dir);
-	}
+  setDir(dir: ReadonlyVec3) {
+    vec3.normalize(this.dir, dir);
+  }
 
-	getDir(): ReadonlyVec3 {
-		return this.getTransformedNormals()[0];
-	}
+  getDir(): ReadonlyVec3 {
+    return this.getTransformedNormals()[0];
+  }
 
-	setStartAndDir(start: ReadonlyVec3, dir: ReadonlyVec3) {
-		vec3.copy(this.start, start);
-		vec3.normalize(this.dir, dir);
-	}
+  setStartAndDir(start: ReadonlyVec3, dir: ReadonlyVec3) {
+    vec3.copy(this.start, start);
+    vec3.normalize(this.dir, dir);
+  }
 
-	setInverseMatrix(matrix: mat4) {
-		this.inverseMatrix = matrix;
-	}
+  setInverseMatrix(matrix: mat4) {
+    this.inverseMatrix = matrix;
+  }
 
-	getTransformedVertices(): Array<vec3> {
-		return [vec3.transformMat4(vec3.create(), this.start, this.inverseMatrix)];
-	}
+  getTransformedVertices(): Array<vec3> {
+    return [vec3.transformMat4(vec3.create(), this.start, this.inverseMatrix)];
+  }
 
-	getTransformedNormals(): Array<vec3> {
-		let start = this.getTransformedVertices()[0];
-		let end = vec3.transformMat4(
-			vec3.create(),
-			vec3.add(vec3.create(), this.start, this.dir),
-			this.inverseMatrix
-		);
+  getTransformedNormals(): Array<vec3> {
+    let start = this.getTransformedVertices()[0];
+    let end = vec3.transformMat4(
+      vec3.create(),
+      vec3.add(vec3.create(), this.start, this.dir),
+      this.inverseMatrix
+    );
 
-		return [vec3.subtract(vec3.create(), end, start)]; // Not normalized because we want to keep distances
-	}
+    return [vec3.subtract(vec3.create(), end, start)]; // Not normalized because we want to keep distances
+  }
 
-	getTransformedEdges(): Array<vec3> {
-		return [];
-	}
+  getTransformedEdges(): Array<vec3> {
+    return [];
+  }
 
-	getTransformedEdgeNormals(): Array<vec3> {
-		return [];
-	}
+  getTransformedEdgeNormals(): Array<vec3> {
+    return [];
+  }
 }

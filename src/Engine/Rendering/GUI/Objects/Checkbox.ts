@@ -3,55 +3,55 @@ import Div from "./Div";
 import GuiObject from "./GuiObject";
 
 export default class Checkbox extends GuiObject {
-	position: vec2;
-	textSize: number;
+  position: vec2;
+  textSize: number;
 
-	private inputNode: HTMLInputElement;
-	private label: HTMLLabelElement;
+  private inputNode: HTMLInputElement;
+  private label: HTMLLabelElement;
 
-	constructor(domElement: HTMLDivElement, parentDiv?: Div) {
-		super(domElement, parentDiv);
-		this.position = vec2.create();
-		this.textSize = 42;
+  constructor(domElement: HTMLDivElement, parentDiv?: Div) {
+    super(domElement, parentDiv);
+    this.position = vec2.create();
+    this.textSize = 42;
 
-		// make an input node and a label node
-		let container = document.createElement("label");
-		container.className = "checkboxContainer";
+    // make an input node and a label node
+    let container = document.createElement("label");
+    container.className = "checkboxContainer";
 
-		this.label = document.createElement("label");
-		this.label.style.fontSize = "inherit";
+    this.label = document.createElement("label");
+    this.label.style.fontSize = "inherit";
 
-		this.inputNode = document.createElement("input");
-		this.inputNode.type = "checkbox";
+    this.inputNode = document.createElement("input");
+    this.inputNode.type = "checkbox";
 
-		let checkmarkNode = document.createElement("span");
-		checkmarkNode.className = "checkmark";
+    let checkmarkNode = document.createElement("span");
+    checkmarkNode.className = "checkmark";
 
-		container.appendChild(this.label);
-		container.appendChild(this.inputNode);
-		container.appendChild(checkmarkNode);
+    container.appendChild(this.label);
+    container.appendChild(this.inputNode);
+    container.appendChild(checkmarkNode);
 
-		this.div.appendChild(container);
-	}
+    this.div.appendChild(container);
+  }
 
-	getElement(): HTMLDivElement {
-		return this.div;
-	}
+  getElement(): HTMLDivElement {
+    return this.div;
+  }
 
-	getInputElement(): HTMLInputElement {
-		return this.inputNode;
-	}
+  getInputElement(): HTMLInputElement {
+    return this.inputNode;
+  }
 
-	getChecked(): boolean {
-		return this.inputNode.checked;
-	}
+  getChecked(): boolean {
+    return this.inputNode.checked;
+  }
 
-	draw() {
-		this.position2D = this.position;
-		this.fontSize = this.textSize;
-		if (this.textString != "") {
-			this.label.textContent = this.textString;
-		}
-		this.drawObject();
-	}
+  draw() {
+    this.position2D = this.position;
+    this.fontSize = this.textSize;
+    if (this.textString != "") {
+      this.label.textContent = this.textString;
+    }
+    this.drawObject();
+  }
 }

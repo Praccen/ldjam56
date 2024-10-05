@@ -1,17 +1,20 @@
-import { pointLightsToAllocate, pointShadowsToAllocate } from "../DeferredRendering/LightingPassShaderProgram";
+import {
+  pointLightsToAllocate,
+  pointShadowsToAllocate,
+} from "../DeferredRendering/LightingPassShaderProgram";
 import { screenQuadVertexSrc } from "../ScreenQuadShaderProgram";
 import ShaderProgram from "../ShaderProgram";
 
 let volumetricLightingFragmentShaderSrc =
-		`#version 300 es
+  `#version 300 es
 precision highp float;
 
 #define NR_POINT_LIGHTS ` +
-		pointLightsToAllocate +
-		`
+  pointLightsToAllocate +
+  `
 #define NR_POINT_SHADOWS ` +
-		pointShadowsToAllocate +
-		`
+  pointShadowsToAllocate +
+  `
 in vec2 texCoords;
 
 uniform mat4 viewProjMatrix;
@@ -75,34 +78,34 @@ float CalcPointShadow(PointLight light, vec3 fragmentPos) {
 	fragToLight.z *= -1.0;
     // use the light to fragment vector to sample from the depth map
     float closestDepth = 1.0;`;
-	// Below is ugly, but I have to unroll the loop to be able to acces the pointDepthMaps array with a compile time index, as run-time index is not allowed to access a sampler
-	for (let i = 0; i < pointShadowsToAllocate; i++) {
-		if (i == 0) {
-			volumetricLightingFragmentShaderSrc +=
-				`
+// Below is ugly, but I have to unroll the loop to be able to acces the pointDepthMaps array with a compile time index, as run-time index is not allowed to access a sampler
+for (let i = 0; i < pointShadowsToAllocate; i++) {
+  if (i == 0) {
+    volumetricLightingFragmentShaderSrc +=
+      `
 	if (light.pointDepthMapIndex == ` +
-				i +
-				`) {
+      i +
+      `) {
 		closestDepth = texture(pointDepthMaps[` +
-				i +
-				`], fragToLight).r;
+      i +
+      `], fragToLight).r;
 	}
 	`;
-		} else {
-			volumetricLightingFragmentShaderSrc +=
-				`
+  } else {
+    volumetricLightingFragmentShaderSrc +=
+      `
 	else if (light.pointDepthMapIndex == ` +
-				i +
-				`) {
+      i +
+      `) {
 		closestDepth = texture(pointDepthMaps[` +
-				i +
-				`], fragToLight).r;
+      i +
+      `], fragToLight).r;
 	}
 	`;
-		}
-	}
+  }
+}
 
-	volumetricLightingFragmentShaderSrc += `
+volumetricLightingFragmentShaderSrc += `
     // it is currently in linear range between [0,1]. Re-transform back to original value
     closestDepth *= far_plane;
     // now get current linear depth as the length between the fragment and light position
@@ -220,51 +223,54 @@ void main()
 `;
 
 export default class VolumetricLightingShaderProgram extends ShaderProgram {
-	constructor(gl: WebGL2RenderingContext) {
-		super(
-			gl,
-			"VolumetricLightingShaderProgram",
-			screenQuadVertexSrc,
-			volumetricLightingFragmentShaderSrc,
-			false
-		);
+  constructor(gl: WebGL2RenderingContext) {
+    super(
+      gl,
+      "VolumetricLightingShaderProgram",
+      screenQuadVertexSrc,
+      volumetricLightingFragmentShaderSrc,
+      false
+    );
 
-		this.use();
+    this.use();
 
-		this.setUniformLocation("viewProjMatrix");
-		this.setUniformLocation("cameraPos");
-		this.setUniformLocation("fogMaxDistance");
-		this.setUniformLocation("fogDensity");
-		this.setUniformLocation("gPosition");
-		this.setUniformLocation("depthMap");
-		this.setUniformLocation("fogMap");
+    this.setUniformLocation("viewProjMatrix");
+    this.setUniformLocation("cameraPos");
+    this.setUniformLocation("fogMaxDistance");
+    this.setUniformLocation("fogDensity");
+    this.setUniformLocation("gPosition");
+    this.setUniformLocation("depthMap");
+    this.setUniformLocation("fogMap");
 
-		this.gl.uniform1i(this.getUniformLocation("gPosition")[0], 0);
-		this.gl.uniform1i(this.getUniformLocation("fogMap")[0], 1);
-		this.gl.uniform1i(this.getUniformLocation("depthMap")[0], 2);
-		
-		this.setUniformLocation("nrOfPointLights");
-		this.setUniformLocation("currentTime");
+    this.gl.uniform1i(this.getUniformLocation("gPosition")[0], 0);
+    this.gl.uniform1i(this.getUniformLocation("fogMap")[0], 1);
+    this.gl.uniform1i(this.getUniformLocation("depthMap")[0], 2);
 
-		for (let i = 0; i < pointShadowsToAllocate; i++) {
-			this.setUniformLocation("pointDepthMaps[" + i + "]");
-			this.gl.uniform1i(this.getUniformLocation("pointDepthMaps[" + i + "]")[0], i + 3);
-		}
+    this.setUniformLocation("nrOfPointLights");
+    this.setUniformLocation("currentTime");
 
-		for (let i = 0; i < pointLightsToAllocate; i++) {
-			this.setUniformLocation("pointLights[" + i + "].position");
-			this.setUniformLocation("pointLights[" + i + "].colour");
+    for (let i = 0; i < pointShadowsToAllocate; i++) {
+      this.setUniformLocation("pointDepthMaps[" + i + "]");
+      this.gl.uniform1i(
+        this.getUniformLocation("pointDepthMaps[" + i + "]")[0],
+        i + 3
+      );
+    }
 
-			this.setUniformLocation("pointLights[" + i + "].constant");
-			this.setUniformLocation("pointLights[" + i + "].linear");
-			this.setUniformLocation("pointLights[" + i + "].quadratic");
+    for (let i = 0; i < pointLightsToAllocate; i++) {
+      this.setUniformLocation("pointLights[" + i + "].position");
+      this.setUniformLocation("pointLights[" + i + "].colour");
 
-			this.setUniformLocation("pointLights[" + i + "].pointDepthMapIndex");
-		}
+      this.setUniformLocation("pointLights[" + i + "].constant");
+      this.setUniformLocation("pointLights[" + i + "].linear");
+      this.setUniformLocation("pointLights[" + i + "].quadratic");
 
-		this.setUniformLocation("directionalLight.direction");
-		this.setUniformLocation("directionalLight.colour");
-		this.setUniformLocation("directionalLight.ambientMultiplier");
-		this.setUniformLocation("lightSpaceMatrix");
-	}
+      this.setUniformLocation("pointLights[" + i + "].pointDepthMapIndex");
+    }
+
+    this.setUniformLocation("directionalLight.direction");
+    this.setUniformLocation("directionalLight.colour");
+    this.setUniformLocation("directionalLight.ambientMultiplier");
+    this.setUniformLocation("lightSpaceMatrix");
+  }
 }
