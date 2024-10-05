@@ -6,6 +6,7 @@ import ParticleSpawner from "../Objects/InstancedGraphicsObjects/ParticleSpawner
 import { pointLightsToAllocate } from "./ShaderPrograms/DeferredRendering/LightingPassShaderProgram";
 import RendererBase from "./RendererBase";
 import AnimatedGraphicsBundle from "../Objects/Bundles/AnimatedGraphicsBundle";
+import { mat4 } from "gl-matrix";
 
 export default class Scene {
   renderer: RendererBase;
@@ -82,15 +83,22 @@ export default class Scene {
     specularPath: string
   ): Promise<AnimatedGraphicsBundle> {
     return this.renderer.meshStore.getAmimatedMesh(meshPath).then((mesh) => {
-      const length = this.graphicBundlesAnimated.push(
-        new AnimatedGraphicsBundle(
-          this.renderer.gl,
-          this.renderer.textureStore.getTexture(diffusePath),
-          this.renderer.textureStore.getTexture(specularPath),
-          mesh
-        )
-      );
-      return this.graphicBundlesAnimated[length - 1];
+      const index =
+        this.graphicBundlesAnimated.push(
+          new AnimatedGraphicsBundle(
+            this.renderer.gl,
+            this.renderer.textureStore.getTexture(diffusePath),
+            this.renderer.textureStore.getTexture(specularPath),
+            mesh.go
+          )
+        ) - 1;
+      this.graphicBundlesAnimated[index].bindPose =
+        mesh.gltfObject.getBindPose(0);
+      this.graphicBundlesAnimated[index].boneMatrices = new Array<mat4>();
+      for (const bindMatrix of this.graphicBundlesAnimated[index].bindPose) {
+        this.graphicBundlesAnimated[index].boneMatrices.push(mat4.create());
+      }
+      return this.graphicBundlesAnimated[index];
     });
   }
 
@@ -154,6 +162,12 @@ export default class Scene {
     for (let bundle of this.graphicBundlesInstanced) {
       bundle.graphicsObject.shaderProgram = shaderProgram;
       bundle.draw(bindSpecialTextures);
+    }
+  }
+
+  updateAnimatedMeshes() {
+    for (let bundle of this.graphicBundlesAnimated) {
+      bundle.update();
     }
   }
 

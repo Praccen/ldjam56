@@ -237,6 +237,7 @@ export default class Renderer3D extends RendererBase {
     this.gl.enable(this.gl.DEPTH_TEST);
 
     scene.calculateAllTransforms();
+    scene.updateAnimatedMeshes();
 
     // ---- Shadow pass ----
     this.directionalShadowRenderPass.draw(scene);

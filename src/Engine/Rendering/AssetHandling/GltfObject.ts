@@ -2,14 +2,24 @@ import { mat4, quat, vec3 } from "gl-matrix";
 import Transform from "../../Shared/Transform";
 
 const glTypeToTypedArrayMap = {
-    5120: Int8Array,    // gl.BYTE
-    5121: Uint8Array,   // gl.UNSIGNED_BYTE
-    5122: Int16Array,   // gl.SHORT
-    5123: Uint16Array,  // gl.UNSIGNED_SHORT
-    5124: Int32Array,   // gl.INT
-    5125: Uint32Array,  // gl.UNSIGNED_INT
-    5126: Float32Array, // gl.FLOAT
-  }
+  5120: Int8Array, // gl.BYTE
+  5121: Uint8Array, // gl.UNSIGNED_BYTE
+  5122: Int16Array, // gl.SHORT
+  5123: Uint16Array, // gl.UNSIGNED_SHORT
+  5124: Int32Array, // gl.INT
+  5125: Uint32Array, // gl.UNSIGNED_INT
+  5126: Float32Array, // gl.FLOAT
+};
+
+const glTypeToByteSize = {
+  5120: 1, // gl.BYTE
+  5121: 1, // gl.UNSIGNED_BYTE
+  5122: 2, // gl.SHORT
+  5123: 2, // gl.UNSIGNED_SHORT
+  5124: 4, // gl.INT
+  5125: 4, // gl.UNSIGNED_INT
+  5126: 4, // gl.FLOAT
+};
 
 const setPropertyWithoutTypeConversion = function (
   gltfNode: Object,
@@ -126,7 +136,6 @@ class GltfNode {
       setVec3(gltfNode, "translation", this.transform, "position");
     }
     setPropertyWithoutTypeConversion(gltfNode, "children", this, "children");
-    5;
     setPropertyWithoutTypeConversion(gltfNode, "mesh", this, "mesh");
     setPropertyWithoutTypeConversion(gltfNode, "skin", this, "skin");
     setPropertyWithoutTypeConversion(gltfNode, "camera", this, "camera");
@@ -291,6 +300,23 @@ class GltfMesh {
   }
 }
 
+class GltfSkin {
+  name: string = "";
+  inverseBindMatrices: number = -1;
+  joints: number[] = new Array<number>();
+
+  constructor(gltfSkin: any) {
+    setPropertyWithoutTypeConversion(gltfSkin, "name", this, "name");
+    setPropertyWithoutTypeConversion(
+      gltfSkin,
+      "inverseBindMatrices",
+      this,
+      "inverseBindMatrices"
+    );
+    setPropertyWithoutTypeConversion(gltfSkin, "joints", this, "joints");
+  }
+}
+
 export default class GltfObject {
   gltfJsonContent: any;
   nodes: GltfNode[];
@@ -298,6 +324,7 @@ export default class GltfObject {
   accessors: GltfAccessor[];
   bufferViews: GltfBufferView[];
   meshes: GltfMesh[];
+  skins: GltfSkin[];
 
   constructor(gltfJsonContent: any) {
     this.gltfJsonContent = gltfJsonContent;
@@ -306,6 +333,7 @@ export default class GltfObject {
     this.accessors = new Array<GltfAccessor>();
     this.bufferViews = new Array<GltfBufferView>();
     this.meshes = new Array<GltfMesh>();
+    this.skins = new Array<GltfSkin>();
     this.parse();
   }
 
@@ -336,6 +364,14 @@ export default class GltfObject {
         let i = this.meshes.push(new GltfMesh(mesh)) - 1;
       }
     }
+
+    if (this.gltfJsonContent.skins != undefined) {
+      for (const skin of this.gltfJsonContent.skins) {
+        let i = this.skins.push(new GltfSkin(skin)) - 1;
+      }
+    }
+
+    console.log(this.nodes.length);
   }
 
   getNumMeshes(): number {
@@ -357,10 +393,15 @@ export default class GltfObject {
       buffer: buffer,
       offset: offset,
       length: length,
-      data: new glTypeToTypedArrayMap[this.accessors[primitive.attributes[attribute]].componentType](
+      data: new glTypeToTypedArrayMap[
+        this.accessors[primitive.attributes[attribute]].componentType
+      ](
         this.gltfJsonContent.buffers[buffer],
         offset,
-        length
+        length /
+          glTypeToByteSize[
+            this.accessors[primitive.attributes[attribute]].componentType
+          ]
       ),
     };
   }
@@ -380,10 +421,41 @@ export default class GltfObject {
       buffer: buffer,
       offset: offset,
       length: length,
-      data: new glTypeToTypedArrayMap[this.accessors[primitive.indices].componentType](
+      data: new glTypeToTypedArrayMap[
+        this.accessors[primitive.indices].componentType
+      ](
         this.gltfJsonContent.buffers[buffer],
         offset,
-        length
+        length /
+          glTypeToByteSize[this.accessors[primitive.indices].componentType]
+      ),
+    };
+  }
+
+  private getBufferInfoForInverseBindMatrices(skin: GltfSkin): {
+    buffer: number;
+    offset: number;
+    length: number;
+    data: Buffer;
+  } {
+    const bufferView =
+      this.bufferViews[this.accessors[skin.inverseBindMatrices].bufferView];
+    let buffer = bufferView.buffer;
+    let offset = bufferView.byteOffset;
+    let length = bufferView.byteLength;
+    return {
+      buffer: buffer,
+      offset: offset,
+      length: length,
+      data: new glTypeToTypedArrayMap[
+        this.accessors[skin.inverseBindMatrices].componentType
+      ](
+        this.gltfJsonContent.buffers[buffer],
+        offset,
+        length /
+          glTypeToByteSize[
+            this.accessors[skin.inverseBindMatrices].componentType
+          ]
       ),
     };
   }
@@ -523,5 +595,41 @@ export default class GltfObject {
       }
     }
     return buffers;
+  }
+
+  getBindPose(skinIdx: number): Array<mat4> {
+    if (skinIdx >= this.skins.length) {
+      return null;
+    }
+
+    let inverseBindMatricesBufferInfo =
+      this.getBufferInfoForInverseBindMatrices(this.skins[skinIdx]);
+    let inverseBindMatrices = new Array<mat4>();
+    let ibd = inverseBindMatricesBufferInfo.data;
+
+    for (let i = 0; i < ibd.length; i += 16) {
+      inverseBindMatrices.push(
+        mat4.set(
+          mat4.create(),
+          ibd[i + 0],
+          ibd[i + 1],
+          ibd[i + 2],
+          ibd[i + 3],
+          ibd[i + 4],
+          ibd[i + 5],
+          ibd[i + 6],
+          ibd[i + 7],
+          ibd[i + 8],
+          ibd[i + 9],
+          ibd[i + 10],
+          ibd[i + 11],
+          ibd[i + 12],
+          ibd[i + 13],
+          ibd[i + 14],
+          ibd[i + 15]
+        )
+      );
+    }
+    return inverseBindMatrices;
   }
 }

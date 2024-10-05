@@ -8,19 +8,25 @@ import ShaderProgram from "../Renderer/ShaderPrograms/ShaderProgram";
 import GltfObject from "./GltfObject";
 import Texture from "./Textures/Texture";
 import TextureStore from "./TextureStore";
-import { vec2, vec3 } from "gl-matrix";
+import { mat4, vec2, vec3 } from "gl-matrix";
 
 export default class MeshStore {
   private renderer: RendererBase;
   private meshMap: Map<string, Mesh>;
-  private animatedMeshMap: Map<string, AnimatedMesh>;
+  private animatedMeshMap: Map<
+    string,
+    { go: GraphicsObject; gltfObject: GltfObject }
+  >;
   private heightmapMap: Map<string, Heightmap>;
   private textureStore: TextureStore;
 
   constructor(renderer: RendererBase, textureStore: TextureStore) {
     this.renderer = renderer;
     this.meshMap = new Map<string, Mesh>();
-    this.animatedMeshMap = new Map<string, AnimatedMesh>();
+    this.animatedMeshMap = new Map<
+      string,
+      { go: GraphicsObject; gltfObject: GltfObject }
+    >();
     this.heightmapMap = new Map<string, Heightmap>();
     this.textureStore = textureStore;
   }
@@ -64,117 +70,35 @@ export default class MeshStore {
     });
   }
 
-  async getAmimatedMesh(path: string): Promise<GraphicsObject> {
+  async getAmimatedMesh(
+    path: string
+  ): Promise<{ go: GraphicsObject; gltfObject: GltfObject }> {
     let mesh = this.animatedMeshMap.get(path);
     if (mesh) {
-      return new Promise<GraphicsObject>((resolve, reject) => {
-        resolve(mesh);
-      });
+      return new Promise<{ go: GraphicsObject; gltfObject: GltfObject }>(
+        (resolve, reject) => {
+          resolve(mesh);
+        }
+      );
     }
 
-    this.animatedMeshMap.set(path, new AnimatedMesh(this.renderer.gl, null));
+    this.animatedMeshMap.set(path, {
+      go: new AnimatedMesh(this.renderer.gl, null),
+      gltfObject: null,
+    });
     let newlyCreatedMesh = this.animatedMeshMap.get(path);
-    return this.parseGltfContent(path).then((data) => {
-      if (data.length > 0) {
-        newlyCreatedMesh.setVertexData(data[0].vertexData);
-        newlyCreatedMesh.setIndexData(data[0].indexData);
+    return this.parseGltfContent(path).then((gltfObject) => {
+      if (gltfObject.getNumMeshes() > 0) {
+        const data = gltfObject.getBufferData(0);
+        if (data.length > 0) {
+          newlyCreatedMesh.go.setVertexData(data[0].vertexData);
+          newlyCreatedMesh.go.setIndexData(data[0].indexData);
+          newlyCreatedMesh.gltfObject = gltfObject;
+        }
       }
+
       return newlyCreatedMesh;
     });
-
-    // return new Promise<GraphicsObject>(
-    // 	(resolve, reject) => {
-    // 		let aMesh = new AnimatedMesh(this.renderer.gl, null);
-    // 		let vertices = new Float32Array([
-    // 			// 0
-    // 			0.0, 1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			1.0, 0.0, 0.0, 0.0, // weight
-    // 			0.0, 0.0, 0.0, 0.0, // boneidx
-
-    // 			// 1
-    // 			0.0, -1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			1.0, 0.0, 0.0, 0.0, // weight
-    // 			0.0, 0.0, 0.0, 0.0, // boneidx
-
-    // 			// 2
-    // 			2.0, 1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			0.5, 0.5, 0.0, 0.0, // weight
-    // 			0.0, 1.0, 0.0, 0.0, // boneidx
-
-    // 			// 3
-    // 			2.0, -1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			0.5, 0.5, 0.0, 0.0, // weight
-    // 			0.0, 1.0, 0.0, 0.0, // boneidx
-
-    // 			// 4
-    // 			4.0, 1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			1.0, 0.0, 0.0, 0.0, // weight
-    // 			1.0, 0.0, 0.0, 0.0, // boneidx
-
-    // 			// 5
-    // 			4.0, -1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			1.0, 0.0, 0.0, 0.0, // weight
-    // 			1.0, 0.0, 0.0, 0.0, // boneidx
-
-    // 			// 6
-    // 			6.0, 1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			0.5, 0.5, 0.0, 0.0, // weight
-    // 			1.0, 2.0, 0.0, 0.0, // boneidx
-
-    // 			// 7
-    // 			6.0, -1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			0.5, 0.5, 0.0, 0.0, // weight
-    // 			1.0, 2.0, 0.0, 0.0, // boneidx
-
-    // 			// 8
-    // 			8.0, 1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			1.0, 0.0, 0.0, 0.0, // weight
-    // 			2.0, 0.0, 0.0, 0.0, // boneidx
-
-    // 			// 9
-    // 			8.0, -1.0, 0.0, // pos
-    // 			0.0, 0.0, 1.0, // normal
-    // 			0.5, 0.5,      // uv
-    // 			1.0, 0.0, 0.0, 0.0, // weight
-    // 			2.0, 0.0, 0.0, 0.0, // boneidx
-    // 		]);
-
-    // 		aMesh.setVertexData(vertices);
-
-    // 		// prettier-ignore
-    // 		let indices = new Int32Array([
-    // 			0, 1, 2,
-    // 			2, 1, 3,
-    // 			2, 3, 4,
-    // 			4, 3, 5,
-    // 			4, 5, 6,
-    // 			6, 5, 7,
-    // 			6, 7, 8,
-    // 			8, 7, 9,
-    // 		]);
-    // 		aMesh.setIndexData(indices);
-
-    // 		resolve(aMesh);
-    // 	}
-    // );
   }
 
   private async parseObjContent(meshPath: string): Promise<Float32Array> {
@@ -464,9 +388,7 @@ export default class MeshStore {
     return returnArr;
   }
 
-  async parseGltfContent(
-    meshPath: string
-  ): Promise<Array<{ vertexData: Float32Array; indexData: Int32Array }>> {
+  async parseGltfContent(meshPath: string): Promise<GltfObject> {
     const response = await fetch(meshPath);
     let gltfContent = await response.json();
 
@@ -483,10 +405,6 @@ export default class MeshStore {
     );
 
     const gltfObject = new GltfObject(gltfContent);
-    if (gltfObject.getNumMeshes() > 0) {
-      return gltfObject.getBufferData(0);
-    }
-
-    return null;
+    return gltfObject;
   }
 }

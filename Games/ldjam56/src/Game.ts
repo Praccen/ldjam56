@@ -396,10 +396,6 @@ function preRendereringUpdate(dt: number) {
   if (player.physicsObj != undefined) {
     itemHandler.preRenderingUpdate(dt, player.physicsObj.transform.position);
   }
-
-  // if (animatedTestMesh != undefined) {
-  //   animatedTestMesh.update(Math.sin(gameTimer) * 0.8);
-  // }
 }
 
 // Resize function to that will update the size of our game window when the browser window is resized
