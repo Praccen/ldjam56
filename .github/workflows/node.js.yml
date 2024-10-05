@@ -1,7 +1,4 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js CI
+name: Build on NixOS
 
 on:
   push:
@@ -11,14 +8,14 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted # Use NixOS runner
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v3
-    
-    - name: Use Node.js
-    - run: nix --experimental-features "nix-command flakes" develop -c npm run build:release --if-present
-    - run: nix --experimental-features "nix-command flakes" develop -c cd Game/ldjam54 && npm run build:release --if-present
-    - run: cp index.* /var/www/ldjam56.rlyeh.nu/
-    - run: cp dist/* /var/www/ldjam56.rlyeh.nu/
 
+    - name: Build with Nix
+      run: | 
+        nix --experimental-features "nix-command flakes" develop -c npm run build:release --if-present
+        nix --experimental-features "nix-command flakes" develop -c cd Game/ldjam54 && npm run build:release --if-present
+        cp index.* /var/www/ldjam56.rlyeh.nu/
+        cp dist/* /var/www/ldjam56.rlyeh.nu/
