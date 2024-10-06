@@ -33,8 +33,9 @@ export default class AnimatedGraphicsBundle extends GraphicsBundle {
     for (let i = 0; i < this.boneMatrices.length; i++) {
       mat4.mul(
         this.boneMatrices[i],
-        this.boneMatrices[i], 
-        this.bindPose[i]);
+        this.boneMatrices[i],
+        this.bindPose[i]
+      ); 
     }
   }
 

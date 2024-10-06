@@ -165,10 +165,12 @@ let itemHandler = new ItemHandler(guiRenderer, gui, inventory);
 let animatedTestMesh: AnimatedGraphicsBundle = null;
 scene
   .addNewAnimatedMesh(
-    // "Assets/gltf/VampireDance.gltf",
-    "Assets/gltf/SimpleSkin/glTF/SimpleSkin.gltf",
+    "Assets/gltf/VampireDance.gltf",
+    // "Assets/gltf/SimpleSkin/glTF/SimpleSkin.gltf",
+    // "Assets/gltf/SimpleSkin/simple.gltf",
     // "Assets/gltf/VampireDanceTextures/Vampire_diffuse.png",
     "CSS:rgb(255,0,0)",
+    // "Assets/Textures/water.png",
     "CSS:rgb(0,0,0)"
   )
   .then((aMeshBundle) => {
@@ -428,7 +430,7 @@ function preRendereringUpdate(dt: number) {
   }
 
   if (animatedTestMesh != undefined) {
-    animatedTestMesh.animate(dt * 5);
+    animatedTestMesh.animate(dt);
   }
 }
 

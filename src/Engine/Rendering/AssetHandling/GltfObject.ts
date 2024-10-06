@@ -438,7 +438,7 @@ export default class GltfObject {
       }
     }
 
-    console.log(this.nodes.length);
+    // console.log(this.nodes.length);
   }
 
   getNumMeshes(): number {
@@ -652,25 +652,25 @@ export default class GltfObject {
     let ibd = inverseBindMatricesBufferInfo.data;
 
     for (let i = 0; i < ibd.length; i += 16) {
-      inverseBindMatrices.push(
-        mat4.set(
-          mat4.create(),
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 0],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 1],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 2],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 3],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 4],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 5],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 6],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 7],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 8],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 9],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 10],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 11],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 12],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 13],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 14],
-          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 15]
+      let offset = i * Math.max(1, inverseBindMatricesBufferInfo.stride);
+      inverseBindMatrices.unshift(
+        mat4.fromValues(
+          ibd[offset + 0],
+          ibd[offset + 1],
+          ibd[offset + 2],
+          ibd[offset + 3],
+          ibd[offset + 4],
+          ibd[offset + 5],
+          ibd[offset + 6],
+          ibd[offset + 7],
+          ibd[offset + 8],
+          ibd[offset + 9],
+          ibd[offset + 10],
+          ibd[offset + 11],
+          ibd[offset + 12],
+          ibd[offset + 13],
+          ibd[offset + 14],
+          ibd[offset + 15]
         )
       );
     }
@@ -679,14 +679,14 @@ export default class GltfObject {
 
   getBoneMatrices(skinIdx: number): Array<mat4> {
     for (const node of this.nodes) {
-      node.transform.calculateMatrices();
+      node.transform.calculateAnimationMatrix();
     }
 
     let boneMatrices = new Array<mat4>();
     for (const joint of this.skins[skinIdx].joints) {
     // for (let i = this.skins[skinIdx].joints.length - 1; i >= 0; i--) {
     //   const joint = this.skins[skinIdx].joints[i];
-      boneMatrices.push(this.nodes[joint].transform.matrix);
+      boneMatrices.unshift(this.nodes[joint].transform.matrix);
     }
 
     return boneMatrices;

@@ -32,6 +32,23 @@ export default class Transform {
     vec3.copy(this.position, translation);
   }
 
+  calculateAnimationMatrix(
+    matrix: mat4 = this.matrix,
+    identityMatrixFirst: boolean = true
+  ) {
+    if (identityMatrixFirst) {
+      mat4.identity(matrix);
+    }
+
+    if (this.parentTransform != undefined) {
+      this.parentTransform.calculateAnimationMatrix(matrix, false);
+    }
+
+    mat4.translate(matrix, matrix, this.position);
+    mat4.multiply(matrix, matrix, mat4.fromQuat(mat4.create(), this.rotation));
+    mat4.scale(matrix, matrix, this.scale);
+  }
+
   calculateMatrices(
     matrix: mat4 = this.matrix,
     normalMatrix: mat3 = this.normalMatrix,
