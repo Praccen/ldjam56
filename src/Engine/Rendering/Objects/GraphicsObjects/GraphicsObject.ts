@@ -12,6 +12,8 @@ export default class GraphicsObject {
   // Protected
   protected gl: WebGL2RenderingContext;
 
+  mode: number;
+
   constructor(gl: WebGL2RenderingContext) {
     this.gl = gl;
 
@@ -20,6 +22,7 @@ export default class GraphicsObject {
     this.EBO = null; // Optional
 
     this.init();
+    this.mode = gl.TRIANGLES;
   }
 
   init() {

@@ -96,6 +96,25 @@ export default class MeshStore {
             newlyCreatedMesh.go.setIndexData(data[0].indexData);
           }
           newlyCreatedMesh.gltfObject = gltfObject;
+          
+          // // positions
+          // console.log("Positions");
+          // for (let i = 0; i < data[0].vertexData.length; i += 16) {
+          //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + ")");
+          // }
+
+          // // positions
+          // console.log("Weights");
+          // for (let i = 8; i < data[0].vertexData.length; i += 16) {
+          //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + " , " + data[0].vertexData[i + 3]+ ")");
+          // }
+
+          // // Joints
+          // console.log("Bone indices (joints)");
+          // for (let i = 12; i < data[0].vertexData.length; i += 16) {
+          //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + " , " + data[0].vertexData[i + 3]+ ")");
+          // }
+
         }
       }
 

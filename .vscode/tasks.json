@@ -13,6 +13,17 @@
 			"detail": "tsup"
 		},
 		{
+			"label": "Engine watch",
+			"type": "npm",
+			"script": "dev",
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"problemMatcher": [],
+			"detail": "tsup"
+		},
+		{
 			"label": "Game build",
 			"type": "shell",
 			"command": "cd ./Games/ldjam56 ; npm run build",

@@ -192,8 +192,8 @@ class GltfAccessor {
   count: number = 0;
   byteOffset: number = 0;
   type: string = "";
-  max: vec3; // TODO: figure out if these are needed or if I can just skip them because I can calculate bounding boxes myself.
-  min: vec3; // TODO: figure out if these are needed or if I can just skip them because I can calculate bounding boxes myself.
+  max: vec3; // TODO: figure out if these are needed or if I can just skip them because I can calculate bounds myself.
+  min: vec3; // TODO: figure out if these are needed or if I can just skip them because I can calculate bounds myself.
   constructor(gltfAccessor: any) {
     setPropertyWithoutTypeConversion(
       gltfAccessor,
@@ -326,6 +326,47 @@ class GltfSkin {
   }
 }
 
+class GltfChannel {
+  sampler: number = -1;
+  target: {node: number, path: string} = {node: -1, path: ""};
+  constructor(gltfChannel: any) {
+    setPropertyWithoutTypeConversion(gltfChannel, "sampler", this, "sampler");
+    setPropertyWithoutTypeConversion(gltfChannel, "target", this, "target");
+  }
+}
+
+class GltfSampler {
+  input: number = -1;
+  interpolation: string = "";
+  output: number = -1;
+  constructor(gltfSampler: any) {
+    setPropertyWithoutTypeConversion(gltfSampler, "input", this, "input");
+    setPropertyWithoutTypeConversion(gltfSampler, "interpolation", this, "interpolation");
+    setPropertyWithoutTypeConversion(gltfSampler, "output", this, "output");
+  }
+}
+
+class GltfAnimation {
+  name: string = "";
+  channels: GltfChannel[] = new Array<GltfChannel>();
+  samplers: GltfSampler[] = new Array<GltfSampler>();
+
+  constructor(gltfAnimation: any) {
+    setPropertyWithoutTypeConversion(gltfAnimation, "name", this, "name");
+    if (gltfAnimation.channels != undefined) {
+      for (const channel of gltfAnimation.channels) {
+        this.channels.push(new GltfChannel(channel));
+      }
+    }
+
+    if (gltfAnimation.samplers != undefined) {
+      for (const sampler of gltfAnimation.samplers) {
+        this.samplers.push(new GltfSampler(sampler));
+      }
+    }
+  }
+}
+
 export default class GltfObject {
   gltfJsonContent: any;
   nodes: GltfNode[];
@@ -334,6 +375,7 @@ export default class GltfObject {
   bufferViews: GltfBufferView[];
   meshes: GltfMesh[];
   skins: GltfSkin[];
+  animations: GltfAnimation[];
 
   constructor(gltfJsonContent: any) {
     this.gltfJsonContent = gltfJsonContent;
@@ -343,6 +385,7 @@ export default class GltfObject {
     this.bufferViews = new Array<GltfBufferView>();
     this.meshes = new Array<GltfMesh>();
     this.skins = new Array<GltfSkin>();
+    this.animations = new Array<GltfAnimation>();
     this.parse();
   }
 
@@ -380,6 +423,13 @@ export default class GltfObject {
       }
     }
 
+    if (this.gltfJsonContent.animations != undefined) {
+      for (const animation of this.gltfJsonContent.animations) {
+        let i = this.animations.push(new GltfAnimation(animation)) - 1;
+      }
+    }
+
+    // Relate children to their parents through transform.parentTransform
     for (const node of this.nodes) {
       if (node.children != undefined) {
         for (let child of node.children) {
@@ -395,99 +445,38 @@ export default class GltfObject {
     return this.meshes.length;
   }
 
+  private getBufferInfoForAccessor(accessor: GltfAccessor):{
+    buffer: number;
+    stride: number;
+    data: Buffer;
+  } {
+    const bufferView =
+      this.bufferViews[accessor.bufferView];
+    let buffer = bufferView.buffer;
+    let offset = bufferView.byteOffset + accessor.byteOffset;
+    let stride = bufferView.byteStride / glTypeToByteSize[accessor.componentType];
+    let length = (bufferView.byteLength - accessor.byteOffset) / glTypeToByteSize[accessor.componentType];
+    return {
+      buffer: buffer,
+      stride: stride,
+      data: new glTypeToTypedArrayMap[
+        accessor.componentType
+      ](
+        this.gltfJsonContent.buffers[buffer],
+        offset,
+        length
+      ),
+    };
+  }
+
   private getBufferInfoFromAttribute(
     primitive: GltfPrimitive,
     attribute: string
-  ): { buffer: number; offset: number; stride: number, length: number; data: Buffer } {
+  ): { buffer: number; stride: number, data: Buffer } {
     if (primitive.attributes[attribute] < 0) {
       return null;
     }
-    const bufferView =
-      this.bufferViews[
-        this.accessors[primitive.attributes[attribute]].bufferView
-      ];
-    let buffer = bufferView.buffer;
-    let offset = bufferView.byteOffset + this.accessors[primitive.attributes[attribute]].byteOffset;
-    let stride = bufferView.byteStride;
-    let length = bufferView.byteLength - this.accessors[primitive.attributes[attribute]].byteOffset;
-    return {
-      buffer: buffer,
-      offset: offset,
-      stride: stride / glTypeToByteSize[
-        this.accessors[primitive.attributes[attribute]].componentType
-      ],
-      length: length,
-      data: new glTypeToTypedArrayMap[
-        this.accessors[primitive.attributes[attribute]].componentType
-      ](
-        this.gltfJsonContent.buffers[buffer],
-        offset,
-        length /
-          glTypeToByteSize[
-            this.accessors[primitive.attributes[attribute]].componentType
-          ]
-      ),
-    };
-  }
-
-  private getBufferInfoForIndex(primitive: GltfPrimitive): {
-    buffer: number;
-    offset: number;
-    stride: number;
-    length: number;
-    data: Buffer;
-  } {
-    const bufferView =
-      this.bufferViews[this.accessors[primitive.indices].bufferView];
-    let buffer = bufferView.buffer;
-    let offset = bufferView.byteOffset + this.accessors[primitive.indices].byteOffset;
-    let stride = bufferView.byteStride;
-    let length = bufferView.byteLength - this.accessors[primitive.indices].byteOffset;
-    return {
-      buffer: buffer,
-      offset: offset,
-      stride: stride,
-      length: length,
-      data: new glTypeToTypedArrayMap[
-        this.accessors[primitive.indices].componentType
-      ](
-        this.gltfJsonContent.buffers[buffer],
-        offset,
-        length /
-          glTypeToByteSize[this.accessors[primitive.indices].componentType]
-      ),
-    };
-  }
-
-  private getBufferInfoForInverseBindMatrices(skin: GltfSkin): {
-    buffer: number;
-    offset: number;
-    stride: number;
-    length: number;
-    data: Buffer;
-  } {
-    const bufferView =
-      this.bufferViews[this.accessors[skin.inverseBindMatrices].bufferView];
-    let buffer = bufferView.buffer;
-    let offset = bufferView.byteOffset + this.accessors[skin.inverseBindMatrices].byteOffset;
-    let stride = bufferView.byteStride;
-    let length = bufferView.byteLength - this.accessors[skin.inverseBindMatrices].byteOffset;
-    return {
-      buffer: buffer,
-      offset: offset,
-      stride: stride,
-      length: length,
-      data: new glTypeToTypedArrayMap[
-        this.accessors[skin.inverseBindMatrices].componentType
-      ](
-        this.gltfJsonContent.buffers[buffer],
-        offset,
-        length /
-          glTypeToByteSize[
-            this.accessors[skin.inverseBindMatrices].componentType
-          ]
-      ),
-    };
+    return this.getBufferInfoForAccessor(this.accessors[primitive.attributes[attribute]]);
   }
 
   getBufferData(
@@ -590,7 +579,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              positionsBufferInfo.data[i * (stride + positionsBufferInfo.stride) + j];
+              positionsBufferInfo.data[i * (Math.max(stride, positionsBufferInfo.stride)) + j];
           }
           o++;
         }
@@ -602,7 +591,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              normalBufferInfo.data[i * (stride + normalBufferInfo.stride) + j];
+              normalBufferInfo.data[i * (Math.max(stride, normalBufferInfo.stride)) + j];
           }
           o++;
         }
@@ -614,7 +603,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              texCoordsBufferInfo.data[i * (stride + texCoordsBufferInfo.stride) + j];
+              texCoordsBufferInfo.data[i * (Math.max(stride, texCoordsBufferInfo.stride)) + j];
           }
           o++;
         }
@@ -626,7 +615,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              weightsBufferInfo.data[i * (stride + weightsBufferInfo.stride)  + j];
+              weightsBufferInfo.data[i * (Math.max(stride, weightsBufferInfo.stride)) + j];
           }
           o++;
         }
@@ -638,13 +627,13 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              jointsBufferInfo.data[i * (stride + jointsBufferInfo.stride) + j];
+              jointsBufferInfo.data[i * (Math.max(stride, jointsBufferInfo.stride)) + j];
           }
           o++;
         }
       }
 
-      let indicesBufferInfo = this.getBufferInfoForIndex(primitive);
+      let indicesBufferInfo = this.getBufferInfoForAccessor(this.accessors[primitive.indices]);
       for (let i = 0; i < numberOfIndices; i++) {
         buffers[bufferIndex].indexData[i] = indicesBufferInfo.data[i * (1 + indicesBufferInfo.stride)];
       }
@@ -658,7 +647,7 @@ export default class GltfObject {
     }
 
     let inverseBindMatricesBufferInfo =
-      this.getBufferInfoForInverseBindMatrices(this.skins[skinIdx]);
+      this.getBufferInfoForAccessor(this.accessors[this.skins[skinIdx].inverseBindMatrices]);
     let inverseBindMatrices = new Array<mat4>();
     let ibd = inverseBindMatricesBufferInfo.data;
 
@@ -695,9 +684,84 @@ export default class GltfObject {
 
     let boneMatrices = new Array<mat4>();
     for (const joint of this.skins[skinIdx].joints) {
+    // for (let i = this.skins[skinIdx].joints.length - 1; i >= 0; i--) {
+    //   const joint = this.skins[skinIdx].joints[i];
       boneMatrices.push(this.nodes[joint].transform.matrix);
     }
 
     return boneMatrices;
+  }
+
+  getNumAnimations(): number {
+    return this.animations.length;
+  }
+
+  animate(animationIdx: number, time: number) {
+    if (animationIdx >= this.animations.length) {
+      return;
+    }
+
+    const animation = this.animations[animationIdx];
+
+    // Start by getting all timelines so we don't have to do it more than once per input
+    let timelinesMap = new Map<number, number[]>();
+
+    for (const channel of animation.channels) {
+      if (timelinesMap.has(animation.samplers[channel.sampler].input)) {
+        continue;
+      }
+
+      let inputBufferInfo = this.getBufferInfoForAccessor(this.accessors[animation.samplers[channel.sampler].input]);
+      let timeline = new Array<number>();
+      
+      for (let i = 0; i < inputBufferInfo.data.length; i += Math.max(1, inputBufferInfo.stride)) {
+        timeline.push(inputBufferInfo.data[i]);
+      }
+
+      timelinesMap.set(animation.samplers[channel.sampler].input, timeline);
+    }
+
+    let timelineIndexMap = new Map<number, number>();
+    // Figure out what index the time represents in all timelines
+    timelinesMap.forEach((value, key) => {
+      let max = -Infinity;
+      let min = Infinity;
+      value.forEach((value) => {
+        max = Math.max(value, max);
+        min = Math.min(value, min);
+      }); 
+
+      let timeModolo = min + time % (max - min);
+
+      let timelineIndex = 0;
+      for (let i = 0; i < value.length; i++) {
+        if (timeModolo > value[i]) {
+          timelineIndex = i;
+        }
+        else {
+          break;
+        }
+      }
+
+      timelineIndexMap.set(key, timelineIndex);
+    });
+
+    // Then go through the channels to update the targets using the samplers output
+    for (const channel of animation.channels) {
+      let outputBufferInfo = this.getBufferInfoForAccessor(this.accessors[animation.samplers[channel.sampler].output])
+      const idx = timelineIndexMap.get(animation.samplers[channel.sampler].input);
+      if (channel.target.path == "translation") {
+        let translationIndex = idx * Math.max(3, outputBufferInfo.stride);
+        vec3.set(this.nodes[channel.target.node].transform.position, outputBufferInfo.data[translationIndex], outputBufferInfo.data[translationIndex + 1], outputBufferInfo.data[translationIndex + 2]);
+      }
+      if (channel.target.path == "rotation") {
+        let rotationIndex = idx * Math.max(4, outputBufferInfo.stride);
+        quat.set(this.nodes[channel.target.node].transform.rotation, outputBufferInfo.data[rotationIndex], outputBufferInfo.data[rotationIndex + 1], outputBufferInfo.data[rotationIndex + 2], outputBufferInfo.data[rotationIndex + 3]);
+      }
+      if (channel.target.path == "scale") {
+        let scaleIndex = idx * Math.max(3, outputBufferInfo.stride);
+        vec3.set(this.nodes[channel.target.node].transform.scale, outputBufferInfo.data[scaleIndex], outputBufferInfo.data[scaleIndex + 1], outputBufferInfo.data[scaleIndex + 2]);
+      }
+    }
   }
 }

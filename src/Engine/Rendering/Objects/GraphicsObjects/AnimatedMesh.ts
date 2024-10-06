@@ -71,13 +71,13 @@ export default class AnimatedMesh extends GraphicsObject {
 
       if (this.indices != undefined && this.indices.length > 0) {
         this.gl.drawElements(
-          this.gl.TRIANGLES,
+          this.mode,
           this.indices.length,
           this.gl.UNSIGNED_INT,
           0
         );
       } else {
-        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.vertices.length / 16);
+        this.gl.drawArrays(this.mode, 0, this.vertices.length / 16);
       }
     }
   }

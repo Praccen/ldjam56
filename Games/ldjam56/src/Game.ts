@@ -19,6 +19,7 @@ import Inventory from "./GUI/Inventory.js";
 import { ItemList } from "./Objects/Items/ItemSpecs.js";
 import ItemHandler from "./Objects/Items/ItemHandler.js";
 import Enemy from "./Objects/Enemy.js";
+import { mat4 } from "gl-matrix";
 
 /* ---- Elevator pitch ----
 A rougelite top down 3D procedurally generated dungeon crawler wher you pull a cart with a fire. 
@@ -170,6 +171,17 @@ scene
   .then((aMeshBundle) => {
     animatedTestMesh = aMeshBundle;
     vec3.set(animatedTestMesh.transform.position, 15.0, 1.0, 12.0);
+    // animatedTestMesh.graphicsObject.mode = WebGL2RenderingContext.LINE_STRIP;
+    // let headIndex = animatedTestMesh.gltfObject.nodeNameToIndexMap.get("mixamorig:Head");
+    // vec3.set(aMeshBundle.gltfObject.nodes[headIndex].transform.scale, 10.0, 10.0, 10.0);
+
+    // aMeshBundle.boneMatrices = aMeshBundle.gltfObject.getBoneMatrices(0);
+    //   for (let i = 0; i < aMeshBundle.boneMatrices.length; i++) {
+    //     mat4.mul(
+    //       aMeshBundle.boneMatrices[i],
+    //       aMeshBundle.boneMatrices[i], 
+    //       aMeshBundle.bindPose[i]);
+    //   }
   });
 
 /**
@@ -410,6 +422,10 @@ function preRendereringUpdate(dt: number) {
   player.preRenderingUpdate(dt);
   if (player.physicsObj != undefined) {
     itemHandler.preRenderingUpdate(dt, player.physicsObj.transform.position);
+  }
+
+  if (animatedTestMesh != undefined) {
+    animatedTestMesh.animate(dt * 5);
   }
 }
 
