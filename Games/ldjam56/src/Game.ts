@@ -152,7 +152,8 @@ for (let i = 0; i < map.getNumEnemies(); i++) {
     map,
     enemies,
     i % 2 == 0,
-    pointLight
+    pointLight,
+    player
   );
   enemies.push(enemy);
 }
@@ -186,7 +187,7 @@ scene
     //   for (let i = 0; i < aMeshBundle.boneMatrices.length; i++) {
     //     mat4.mul(
     //       aMeshBundle.boneMatrices[i],
-    //       aMeshBundle.boneMatrices[i], 
+    //       aMeshBundle.boneMatrices[i],
     //       aMeshBundle.bindPose[i]);
     //   }
   });

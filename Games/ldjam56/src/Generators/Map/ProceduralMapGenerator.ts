@@ -208,10 +208,12 @@ export default class ProceduralMap {
   private enemyPaths: Map<string, Path> = new Map<string, Path>();
   private enemyNumbers: string[] = new Array<string>();
   focusRoom: vec2;
+  physicsScene: ENGINE.PhysicsScene;
 
   constructor(scene: ENGINE.Scene, physicsScene: ENGINE.PhysicsScene) {
     this.scene = scene;
     this.instancedMeshes = new Map<string, ENGINE.GraphicsBundle>();
+    this.physicsScene = physicsScene;
     // 8 objects for walls and corners of the room that the player is currently in
     // Starts top left and goes clockwise
     this.physicsObjects = new Array<ENGINE.PhysicsObject>();
@@ -248,12 +250,12 @@ export default class ProceduralMap {
     this.focusRoom = vec2.fromValues(-1.0, -1.0);
 
     const mapLayout = `
-A2222B
+A22222
 225222
 224422
 224422
 222222
-B2222A
+22222A
 `;
 
     // `
@@ -573,6 +575,13 @@ B2222A
                 true
               );
               mesh.modelMatrices.push(matrix);
+
+              let phyTrans = new ENGINE.Transform();
+              phyTrans.position = vec3.clone(mesh.transform.position);
+              phyTrans.rotation = ENGINE.quat.clone(mesh.transform.rotation);
+              phyTrans.scale = vec3.clone(mesh.transform.scale);
+
+              this.physicsScene.addNewPhysicsObject(phyTrans).isStatic = true;
             }
 
             // Left of tile wall
@@ -627,6 +636,13 @@ B2222A
                 true
               );
               mesh.modelMatrices.push(matrix);
+
+              let phyTrans = new ENGINE.Transform();
+              phyTrans.position = vec3.clone(mesh.transform.position);
+              phyTrans.rotation = ENGINE.quat.clone(mesh.transform.rotation);
+              phyTrans.scale = vec3.clone(mesh.transform.scale);
+
+              this.physicsScene.addNewPhysicsObject(phyTrans).isStatic = true;
             }
 
             // Top left of tile corner

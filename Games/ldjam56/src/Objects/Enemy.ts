@@ -13,6 +13,7 @@ import {
 import ProceduralMap from "../Generators/Map/ProceduralMapGenerator.js";
 
 import { Factories } from "../Utils/Factories.js";
+import Player from "./Player.js";
 
 export default class Enemy {
     private physicsScene: PhysicsScene;
@@ -21,9 +22,10 @@ export default class Enemy {
     private pathSecond: vec2[] = new Array<vec2>();
     private enemies: Enemy[];
     private separationRadius: number = 3.0; // Minimum distance between enemies
-    physicsObj: PhysicsObject;
-    map: ProceduralMap;
+    private player: Player;
     private lightSource: PointLight;
+    private map: ProceduralMap;
+    physicsObj: PhysicsObject;
 
     constructor(
         scene: Scene,
@@ -33,7 +35,8 @@ export default class Enemy {
         map: ProceduralMap,
         enemies: Enemy[],
         reverse: boolean,
-        lightSource: PointLight
+        lightSource: PointLight,
+        player: Player
     ) {
         this.physicsScene = physicsScene;
         this.map = map;
@@ -43,6 +46,8 @@ export default class Enemy {
         this.lightSource.constant = 1.0;
         this.lightSource.linear = 0.09;
         this.lightSource.quadratic = 0.032;
+
+        this.player = player;
 
         vec3.set(this.lightSource.colour, 2, 0.5, 0.5);
 
@@ -169,12 +174,51 @@ export default class Enemy {
         }
     }
 
+    lookForPlayer() {
+        if (this.player.physicsObj != undefined) {
+            const distance = vec3.distance(
+                this.physicsObj.transform.position,
+                this.player.physicsObj.transform.position
+            );
+            if (distance < 100) {
+                let playerDir = vec3.sub(
+                    vec3.create(),
+                    this.player.physicsObj.transform.position,
+                    this.physicsObj.transform.position
+                );
+                vec3.normalize(playerDir, playerDir);
+
+                if (
+                    vec3.dot(
+                        vec3.normalize(vec3.create(), this.physicsObj.velocity),
+                        playerDir
+                    ) > 0.75
+                ) {
+                    let ray = new Ray();
+                    ray.setStartAndDir(
+                        this.physicsObj.transform.position,
+                        playerDir
+                    );
+                    let obj = this.physicsScene.doRayCastObj(ray);
+                    if (obj == this.player.physicsObj) {
+                        console.log("Get caught foo!");
+                    } else if (obj == this.physicsObj) {
+                        console.log("Hit self!");
+                    } else {
+                        console.log("Hit wall!");
+                    }
+                }
+            }
+        }
+    }
+
     update(dt: number, renderer: Renderer3D) {
         if (this.physicsObj != undefined) {
             this.updateTargetPos();
             this.move();
             this.avoidObstacleCollisions();
             this.updateLightPos();
+            this.lookForPlayer();
         }
     }
 }

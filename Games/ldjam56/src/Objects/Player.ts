@@ -103,8 +103,8 @@ export default class Player {
         towardsTargetVector,
         50.0 * Math.min(distance, 4.0)
       );
+      this.updateLightPos();
     }
-    this.updateLightPos();
   }
 
   preRenderingUpdate(dt: number) {}

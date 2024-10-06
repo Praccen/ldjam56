@@ -46,6 +46,23 @@ export default class PhysicsScene {
     return closestHit;
   }
 
+  doRayCastObj(ray: Ray, maxDistance: number = Infinity): PhysicsObject {
+    let closestHit = Infinity;
+    let closestObj = undefined;
+    for (let physicsObject of this.physicsObjects) {
+      let hit = IntersectionTester.doRayCast(
+        ray,
+        [physicsObject.boundingBox],
+        Math.min(maxDistance, closestHit)
+      );
+      if (closestHit > hit) {
+        closestHit = hit;
+        closestObj = physicsObject;
+      }
+    }
+    return closestObj;
+  }
+
   removePhysicsObject(physicsObject) {
     this.physicsObjects = this.physicsObjects.filter(
       (o) => physicsObject !== o
