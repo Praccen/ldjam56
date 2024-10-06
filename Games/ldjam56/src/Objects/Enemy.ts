@@ -174,39 +174,47 @@ export default class Enemy {
         }
     }
 
-    lookForPlayer() {
-        if (this.player.physicsObj != undefined) {
-            const distance = vec3.distance(
-                this.physicsObj.transform.position,
-                this.player.physicsObj.transform.position
-            );
-            if (distance < 100) {
-                let playerDir = vec3.sub(
-                    vec3.create(),
-                    this.player.physicsObj.transform.position,
-                    this.physicsObj.transform.position
+    static time: number = 0;
+    lookForPlayer(dt: number) {
+        Enemy.time += dt;
+        if (Enemy.time % 2000 == 0) {
+            if (this.player.physicsObj != undefined) {
+                const distance = vec3.distance(
+                    this.physicsObj.transform.position,
+                    this.player.physicsObj.transform.position
                 );
-                playerDir[1] = 0.0;
-                vec3.normalize(playerDir, playerDir);
-
-                if (
-                    vec3.dot(
-                        vec3.normalize(vec3.create(), this.physicsObj.velocity),
-                        playerDir
-                    ) > 0.75
-                ) {
-                    let ray = new Ray();
-                    ray.setStartAndDir(
-                        vec3.add(vec3.create(), this.physicsObj.transform.position, vec3.fromValues(0.0, 1.0, 0.0)),
-                        playerDir
+                if (distance < 10) {
+                    let playerDir = vec3.sub(
+                        vec3.create(),
+                        this.player.physicsObj.transform.position,
+                        this.physicsObj.transform.position
                     );
-                    let hitObject = this.physicsScene.doRayCast(ray, [this.physicsObj]).object;
-                    if (hitObject == this.player.physicsObj) {
-                        console.log("Get caught foo!");
-                    } else if (hitObject == this.physicsObj) {
-                        console.log("Hit self!");
-                    } else {
-                        console.log("Hit wall!");
+                    playerDir[1] = 0.0;
+                    vec3.normalize(playerDir, playerDir);
+
+                    if (
+                        vec3.dot(
+                            vec3.normalize(
+                                vec3.create(),
+                                this.physicsObj.velocity
+                            ),
+                            playerDir
+                        ) > 0.75
+                    ) {
+                        let ray = new Ray();
+                        ray.setStartAndDir(
+                            vec3.add(
+                                vec3.create(),
+                                this.physicsObj.transform.position,
+                                vec3.fromValues(0.0, 1.0, 0.0)
+                            ),
+                            playerDir
+                        );
+                        let hitObject = this.physicsScene.doRayCast(ray, [
+                            this.physicsObj,
+                        ]).object;
+                        if (hitObject == this.player.physicsObj) {
+                        }
                     }
                 }
             }
@@ -219,7 +227,7 @@ export default class Enemy {
             this.move();
             this.avoidObstacleCollisions();
             this.updateLightPos();
-            this.lookForPlayer();
+            this.lookForPlayer(dt);
         }
     }
 }
