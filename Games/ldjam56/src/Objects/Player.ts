@@ -59,6 +59,7 @@ export default class Player {
           this.physicsObj = physicsScene.addNewPhysicsObject(aMeshBundle.transform);
           this.physicsObj.isStatic = false;
           this.physicsObj.frictionCoefficient = 1.0;
+          this.physicsObj.boundingBox.setMinAndMaxVectors(vec3.fromValues(-0.5, 0.0, -0.5), vec3.fromValues(0.5, 1.0, 0.5));
       });
   }
 

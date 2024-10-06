@@ -76,7 +76,8 @@ export default class Enemy {
             .then((aMeshBundle) => {
                 this.animatedMesh = aMeshBundle;
                 vec3.copy(aMeshBundle.transform.position, this.targetPos);
-                aMeshBundle.transform.scale = vec3.fromValues(0.5, 0.5, 0.5);
+                vec3.set(aMeshBundle.transform.scale, 0.5, 0.5, 0.5);
+                vec3.set(aMeshBundle.transform.origin, 0.0, 0.5, 0.0);
 
                 this.physicsObj = physicsScene.addNewPhysicsObject(
                     aMeshBundle.transform
@@ -84,6 +85,7 @@ export default class Enemy {
                 this.physicsObj.isStatic = false;
                 this.physicsObj.isImmovable = false;
                 this.physicsObj.frictionCoefficient = 1.0;
+                this.physicsObj.boundingBox.setMinAndMaxVectors(vec3.fromValues(-1.0, 0.0, -1.0), vec3.fromValues(1.0, 3.0, 1.0));
             });
     }
 
@@ -107,6 +109,9 @@ export default class Enemy {
     avoidObstacleCollisions() {
         this.enemies.forEach((otherEnemy) => {
             if (otherEnemy != this) {
+                if (otherEnemy.physicsObj == undefined) {
+                    return;
+                }
                 const distance = vec3.distance(
                     this.physicsObj.transform.position,
                     otherEnemy.physicsObj.transform.position
@@ -239,7 +244,7 @@ export default class Enemy {
                             vec3.add(
                                 vec3.create(),
                                 this.physicsObj.transform.position,
-                                vec3.fromValues(0.0, 1.0, 0.0)
+                                vec3.fromValues(0.0, 0.2, 0.0)
                             ),
                             playerDir
                         );
