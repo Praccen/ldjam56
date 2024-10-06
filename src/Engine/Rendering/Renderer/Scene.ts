@@ -6,7 +6,7 @@ import ParticleSpawner from "../Objects/InstancedGraphicsObjects/ParticleSpawner
 import { pointLightsToAllocate } from "./ShaderPrograms/DeferredRendering/LightingPassShaderProgram";
 import RendererBase from "./RendererBase";
 import AnimatedGraphicsBundle from "../Objects/Bundles/AnimatedGraphicsBundle";
-import { mat4 } from "gl-matrix";
+import { mat4, quat, vec3 } from "gl-matrix";
 
 export default class Scene {
   renderer: RendererBase;
@@ -94,10 +94,19 @@ export default class Scene {
         ) - 1;
       this.graphicBundlesAnimated[index].bindPose =
         mesh.gltfObject.getBindPose(0);
-      this.graphicBundlesAnimated[index].boneMatrices = new Array<mat4>();
-      for (const bindMatrix of this.graphicBundlesAnimated[index].bindPose) {
-        this.graphicBundlesAnimated[index].boneMatrices.push(mat4.create());
+        
+      const headIndex = mesh.gltfObject.nodeNameToIndexMap.get("mixamorig:Head");
+      vec3.set(mesh.gltfObject.nodes[headIndex].transform.position, 10000.0, 11110.0, 51240.0);
+
+      this.graphicBundlesAnimated[index].boneMatrices = mesh.gltfObject.getBoneMatrices(0);
+      for (let i = 0; i < this.graphicBundlesAnimated[index].boneMatrices.length; i++) {
+        mat4.mul(
+          this.graphicBundlesAnimated[index].boneMatrices[i],
+          this.graphicBundlesAnimated[index].boneMatrices[i], 
+          this.graphicBundlesAnimated[index].bindPose[i]);
+        
       }
+
       return this.graphicBundlesAnimated[index];
     });
   }

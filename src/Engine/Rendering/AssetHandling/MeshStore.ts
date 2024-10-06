@@ -92,7 +92,9 @@ export default class MeshStore {
         const data = gltfObject.getBufferData(0);
         if (data.length > 0) {
           newlyCreatedMesh.go.setVertexData(data[0].vertexData);
-          newlyCreatedMesh.go.setIndexData(data[0].indexData);
+          if (data[0].indexData.length > 0) {
+            newlyCreatedMesh.go.setIndexData(data[0].indexData);
+          }
           newlyCreatedMesh.gltfObject = gltfObject;
         }
       }

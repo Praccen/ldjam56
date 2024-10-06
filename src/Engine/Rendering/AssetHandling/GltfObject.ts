@@ -189,7 +189,7 @@ class GltfNode {
 class GltfAccessor {
   bufferView: number = -1;
   componentType: number = -1;
-  count: number = -1;
+  count: number = 0;
   type: string = "";
   max: vec3; // TODO: figure out if these are needed or if I can just skip them because I can calculate bounding boxes myself.
   min: vec3; // TODO: figure out if these are needed or if I can just skip them because I can calculate bounding boxes myself.
@@ -213,8 +213,9 @@ class GltfAccessor {
 
 class GltfBufferView {
   buffer: number = -1;
-  byteLength: number = -1;
-  byteOffset: number = -1;
+  byteLength: number = 0;
+  byteOffset: number = 0;
+  byteStride: number = 0;
   target: number = -1;
 
   constructor(gltfBufferView: any) {
@@ -230,6 +231,12 @@ class GltfBufferView {
       "byteOffset",
       this,
       "byteOffset"
+    );
+    setPropertyWithoutTypeConversion(
+      gltfBufferView,
+      "byteStride",
+      this,
+      "byteStride"
     );
     setPropertyWithoutTypeConversion(gltfBufferView, "target", this, "target");
   }
@@ -371,6 +378,14 @@ export default class GltfObject {
       }
     }
 
+    for (const node of this.nodes) {
+      if (node.children != undefined) {
+        for (let child of node.children) {
+          this.nodes[child].transform.parentTransform = node.transform;
+        }
+      }
+    }
+
     console.log(this.nodes.length);
   }
 
@@ -381,17 +396,22 @@ export default class GltfObject {
   private getBufferInfoFromAttribute(
     primitive: GltfPrimitive,
     attribute: string
-  ): { buffer: number; offset: number; length: number; data: Buffer } {
+  ): { buffer: number; offset: number; stride: number, length: number; data: Buffer } {
+    if (primitive.attributes[attribute] < 0) {
+      return null;
+    }
     const bufferView =
       this.bufferViews[
         this.accessors[primitive.attributes[attribute]].bufferView
       ];
     let buffer = bufferView.buffer;
     let offset = bufferView.byteOffset;
+    let stride = bufferView.byteStride;
     let length = bufferView.byteLength;
     return {
       buffer: buffer,
       offset: offset,
+      stride: stride,
       length: length,
       data: new glTypeToTypedArrayMap[
         this.accessors[primitive.attributes[attribute]].componentType
@@ -409,6 +429,7 @@ export default class GltfObject {
   private getBufferInfoForIndex(primitive: GltfPrimitive): {
     buffer: number;
     offset: number;
+    stride: number;
     length: number;
     data: Buffer;
   } {
@@ -416,10 +437,12 @@ export default class GltfObject {
       this.bufferViews[this.accessors[primitive.indices].bufferView];
     let buffer = bufferView.buffer;
     let offset = bufferView.byteOffset;
+    let stride = bufferView.byteStride;
     let length = bufferView.byteLength;
     return {
       buffer: buffer,
       offset: offset,
+      stride: stride,
       length: length,
       data: new glTypeToTypedArrayMap[
         this.accessors[primitive.indices].componentType
@@ -435,6 +458,7 @@ export default class GltfObject {
   private getBufferInfoForInverseBindMatrices(skin: GltfSkin): {
     buffer: number;
     offset: number;
+    stride: number;
     length: number;
     data: Buffer;
   } {
@@ -442,10 +466,12 @@ export default class GltfObject {
       this.bufferViews[this.accessors[skin.inverseBindMatrices].bufferView];
     let buffer = bufferView.buffer;
     let offset = bufferView.byteOffset;
+    let stride = bufferView.byteStride;
     let length = bufferView.byteLength;
     return {
       buffer: buffer,
       offset: offset,
+      stride: stride,
       length: length,
       data: new glTypeToTypedArrayMap[
         this.accessors[skin.inverseBindMatrices].componentType
@@ -555,36 +581,61 @@ export default class GltfObject {
         let o = 0;
         let stride = 3;
         for (let j = 0; j < stride; j++) {
-          buffers[bufferIndex].vertexData[i * 16 + o] =
-            positionsBufferInfo.data[i * stride + j];
+          if (positionsBufferInfo == undefined) {
+            buffers[bufferIndex].vertexData[i * 16 + o] = 0.0;
+          }
+          else {
+            buffers[bufferIndex].vertexData[i * 16 + o] =
+              positionsBufferInfo.data[i * stride + j];
+          }
           o++;
         }
         // vec3 inNormal
         stride = 3;
         for (let j = 0; j < stride; j++) {
-          buffers[bufferIndex].vertexData[i * 16 + o] =
-            normalBufferInfo.data[i * stride + j];
+          if (normalBufferInfo == undefined) {
+            buffers[bufferIndex].vertexData[i * 16 + o] = 1.0;
+          }
+          else {
+            buffers[bufferIndex].vertexData[i * 16 + o] =
+              normalBufferInfo.data[i * stride + j];
+          }
           o++;
         }
         // vec2 inTexCoords
         stride = 2;
         for (let j = 0; j < stride; j++) {
-          buffers[bufferIndex].vertexData[i * 16 + o] =
-            texCoordsBufferInfo.data[i * stride + j];
+          if (texCoordsBufferInfo == undefined) {
+            buffers[bufferIndex].vertexData[i * 16 + o] = 0.0;
+          }
+          else {
+            buffers[bufferIndex].vertexData[i * 16 + o] =
+              texCoordsBufferInfo.data[i * stride + j];
+          }
           o++;
         }
         // vec4 inWeight
         stride = 4;
         for (let j = 0; j < stride; j++) {
-          buffers[bufferIndex].vertexData[i * 16 + o] =
-            weightsBufferInfo.data[i * stride + j];
+          if (weightsBufferInfo == undefined) {
+            buffers[bufferIndex].vertexData[i * 16 + o] = 0.0;
+          }
+          else {
+            buffers[bufferIndex].vertexData[i * 16 + o] =
+              weightsBufferInfo.data[i * stride + j];
+          }
           o++;
         }
         // vec4 inBoneIdx; 12
         stride = 4;
         for (let j = 0; j < stride; j++) {
-          buffers[bufferIndex].vertexData[i * 16 + o] =
-            jointsBufferInfo.data[i * stride + j];
+          if (jointsBufferInfo == undefined) {
+            buffers[bufferIndex].vertexData[i * 16 + o] = 0.0;
+          }
+          else {
+            buffers[bufferIndex].vertexData[i * 16 + o] =
+              jointsBufferInfo.data[i * stride + j];
+          }
           o++;
         }
       }
@@ -631,5 +682,18 @@ export default class GltfObject {
       );
     }
     return inverseBindMatrices;
+  }
+
+  getBoneMatrices(skinIdx: number): Array<mat4> {
+    for (const node of this.nodes) {
+      node.transform.calculateMatrices();
+    }
+
+    let boneMatrices = new Array<mat4>();
+    for (const joint of this.skins[skinIdx].joints) {
+      boneMatrices.push(mat4.clone(this.nodes[joint].transform.matrix));
+    }
+
+    return boneMatrices;
   }
 }
