@@ -33,23 +33,13 @@ export default class PhysicsScene {
     return this.physicsObjects[length - 1];
   }
 
-  doRayCast(ray: Ray, maxDistance: number = Infinity): number {
-    let closestHit = Infinity;
-    for (let physicsObject of this.physicsObjects) {
-      let hit = IntersectionTester.doRayCast(
-        ray,
-        [physicsObject.boundingBox],
-        Math.min(maxDistance, closestHit)
-      );
-      closestHit = Math.min(closestHit, hit);
-    }
-    return closestHit;
-  }
-
-  doRayCastObj(ray: Ray, maxDistance: number = Infinity): PhysicsObject {
+  doRayCast(ray: Ray, ignoreObjectsList: PhysicsObject[] = [], maxDistance: number = Infinity): {distance: number, object: PhysicsObject} {
     let closestHit = Infinity;
     let closestObj = undefined;
     for (let physicsObject of this.physicsObjects) {
+      if (ignoreObjectsList.find((value) => {return value == physicsObject})) {
+        continue;
+      }
       let hit = IntersectionTester.doRayCast(
         ray,
         [physicsObject.boundingBox],
@@ -60,7 +50,7 @@ export default class PhysicsScene {
         closestObj = physicsObject;
       }
     }
-    return closestObj;
+    return {distance: closestHit, object: closestObj};
   }
 
   removePhysicsObject(physicsObject) {

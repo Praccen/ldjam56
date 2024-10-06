@@ -78,7 +78,7 @@ export default class Player {
       ndc[1] = ndc[1] * -2.0 + 1.0;
 
       let ray = MousePicking.GetRay(camera, ndc);
-      let dist = this.physicsScene.doRayCast(ray);
+      let dist = this.physicsScene.doRayCast(ray).distance;
       if (dist < Infinity) {
         vec3.scaleAndAdd(
           this.playerTargetPos,

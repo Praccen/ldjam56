@@ -186,6 +186,7 @@ export default class Enemy {
                     this.player.physicsObj.transform.position,
                     this.physicsObj.transform.position
                 );
+                playerDir[1] = 0.0;
                 vec3.normalize(playerDir, playerDir);
 
                 if (
@@ -196,13 +197,13 @@ export default class Enemy {
                 ) {
                     let ray = new Ray();
                     ray.setStartAndDir(
-                        this.physicsObj.transform.position,
+                        vec3.add(vec3.create(), this.physicsObj.transform.position, vec3.fromValues(0.0, 1.0, 0.0)),
                         playerDir
                     );
-                    let obj = this.physicsScene.doRayCastObj(ray);
-                    if (obj == this.player.physicsObj) {
+                    let hitObject = this.physicsScene.doRayCast(ray, [this.physicsObj]).object;
+                    if (hitObject == this.player.physicsObj) {
                         console.log("Get caught foo!");
-                    } else if (obj == this.physicsObj) {
+                    } else if (hitObject == this.physicsObj) {
                         console.log("Hit self!");
                     } else {
                         console.log("Hit wall!");

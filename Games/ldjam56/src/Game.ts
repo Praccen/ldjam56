@@ -355,7 +355,7 @@ function preRendereringUpdate(dt: number) {
     ndc[1] = ndc[1] * -2.0 + 1.0;
 
     let ray = MousePicking.GetRay(camera, ndc);
-    let dist = physicsScene.doRayCast(ray);
+    let dist = physicsScene.doRayCast(ray).distance;
     // if (dist < Infinity) {
     //   vec3.scaleAndAdd(
     //     pointLights[pointLightIndex].position,
