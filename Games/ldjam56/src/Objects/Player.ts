@@ -1,8 +1,10 @@
 import {
+  AnimatedGraphicsBundle,
   Camera,
   MousePicking,
   PhysicsObject,
   PhysicsScene,
+  quat,
   Renderer3D,
   Scene,
   vec2,
@@ -15,6 +17,7 @@ import { Factories } from "../Utils/Factories.js";
 export default class Player {
   private physicsScene: PhysicsScene;
   private playerTargetPos: vec3;
+  private animatedMesh: AnimatedGraphicsBundle;
   physicsObj: PhysicsObject;
   private lightSource: PointLight;
 
@@ -40,20 +43,25 @@ export default class Player {
     vec3.set(this.lightSource.colour, 1, 0.575, 0.161);
 
     this.physicsObj = null;
-    Factories.createMesh(
-      scene,
-      "Assets/objs/cube.obj",
-      vec3.clone(this.playerTargetPos),
-      vec3.fromValues(1.0, 2.0, 1.0),
-      "CSS:rgb(0, 0, 255)",
-      "CSS:rgb(0, 0, 0)"
-    ).then((mesh) => {
-      this.physicsObj = physicsScene.addNewPhysicsObject(mesh.transform);
-      this.physicsObj.isStatic = false;
-      this.physicsObj.frictionCoefficient = 1.0;
-      mesh.transform.origin[1] = -0.5;
-    });
+    this.animatedMesh = null;
+
+    scene
+      .addNewAnimatedMesh(
+          "Assets/gltf/Mouse/mouse.gltf",
+          "Assets/gltf/Mouse/Feldmaus_Diffuse.png",
+          "CSS:rgb(0,0,0)"
+      )
+      .then((aMeshBundle) => {
+          this.animatedMesh = aMeshBundle;
+          vec3.copy(aMeshBundle.transform.position, this.playerTargetPos);
+          vec3.set(aMeshBundle.transform.scale, 1.2, 1.2, 1.2);
+
+          this.physicsObj = physicsScene.addNewPhysicsObject(aMeshBundle.transform);
+          this.physicsObj.isStatic = false;
+          this.physicsObj.frictionCoefficient = 1.0;
+      });
   }
+
   updateLightPos() {
     if (this.lightSource != undefined) {
       vec3.copy(
@@ -104,8 +112,26 @@ export default class Player {
         50.0 * Math.min(distance, 4.0)
       );
       this.updateLightPos();
+
+      
+      if (vec3.len(this.physicsObj.velocity) > 2.0) {
+        let angle = 210.0 - Math.atan2(this.physicsObj.velocity[2], this.physicsObj.velocity[0]) * 180 / Math.PI;
+        quat.fromEuler(this.physicsObj.transform.rotation, 0.0, angle, 0.0);
+      }
     }
+
   }
 
-  preRenderingUpdate(dt: number) {}
+  preRenderingUpdate(dt: number) {
+    if (this.animatedMesh != undefined) {
+      // if (vec3.len(this.physicsObj.velocity) > 0.1) {
+      //   this.animatedMesh.animate(2, dt, 0.2, 1.6);
+      // }
+      // else {
+      //   this.animatedMesh.animate(1, dt);
+      // }
+      
+      this.animatedMesh.animate(2, dt, 1.2, 2.0);
+    }
+  }
 }

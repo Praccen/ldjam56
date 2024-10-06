@@ -163,37 +163,6 @@ inventory.toggle();
 
 let itemHandler = new ItemHandler(guiRenderer, gui, inventory);
 
-let animatedTestMesh: AnimatedGraphicsBundle = null;
-scene
-  .addNewAnimatedMesh(
-    // "Assets/gltf/VampireDance.gltf",
-    // "Assets/gltf/Mouse/mouse.gltf",
-    "Assets/gltf/Rat/RatWalking.gltf",
-    // "Assets/gltf/SimpleSkin/glTF/SimpleSkin.gltf",
-    // "Assets/gltf/SimpleSkin/simple.gltf",
-    // "Assets/gltf/VampireDanceTextures/Vampire_diffuse.png",
-    // "Assets/gltf/Rat/Image_3.png",
-    "CSS:rgb(100,100,100)",
-    // "CSS:rgb(255,0,0)",
-    // "Assets/Textures/water.png",
-    "CSS:rgb(0,0,0)"
-  )
-  .then((aMeshBundle) => {
-    animatedTestMesh = aMeshBundle;
-    vec3.set(animatedTestMesh.transform.position, 15.0, 1.0, 12.0);
-    // animatedTestMesh.graphicsObject.mode = WebGL2RenderingContext.LINE_STRIP;
-    // let headIndex = animatedTestMesh.gltfObject.nodeNameToIndexMap.get("mixamorig:Head");
-    // vec3.set(aMeshBundle.gltfObject.nodes[headIndex].transform.scale, 10.0, 10.0, 10.0);
-
-    // aMeshBundle.boneMatrices = aMeshBundle.gltfObject.getBoneMatrices(0);
-    //   for (let i = 0; i < aMeshBundle.boneMatrices.length; i++) {
-    //     mat4.mul(
-    //       aMeshBundle.boneMatrices[i],
-    //       aMeshBundle.boneMatrices[i],
-    //       aMeshBundle.bindPose[i]);
-    //   }
-  });
-
 /**
  * Our update function, this will run every frame, and is responsible for moving the camera based on input.
  * This is where game logic would go if this was a complete game
@@ -445,10 +414,6 @@ function preRendereringUpdate(dt: number) {
   player.preRenderingUpdate(dt);
   if (player.physicsObj != undefined) {
     itemHandler.preRenderingUpdate(dt, player.physicsObj.transform.position);
-  }
-
-  if (animatedTestMesh != undefined) {
-    animatedTestMesh.animate(0, dt);
   }
 
   for (const enemy of enemies) {

@@ -25,11 +25,16 @@ export default class AnimatedGraphicsBundle extends GraphicsBundle {
     this.animationTimer = 0.0;
   }
 
-  animate(animationIndex: number, dt: number) {
+  animate(animationIndex: number, dt: number, lowerBound: number = 0.0, upperBound?: number) {
     if (this.graphicsObjectAndGltfObject.gltfObject == undefined) {
       return;
     }
+
     this.animationTimer += dt;
+    if (upperBound != undefined) {
+      this.animationTimer = this.animationTimer % (upperBound - lowerBound) + lowerBound;
+    }
+
     this.graphicsObjectAndGltfObject.gltfObject.animate(animationIndex, this.animationTimer);
     this.boneMatrices = this.graphicsObjectAndGltfObject.gltfObject.getBoneMatrices(0);
 
