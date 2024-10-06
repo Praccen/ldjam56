@@ -603,7 +603,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              texCoordsBufferInfo.data[i * (Math.max(stride, texCoordsBufferInfo.stride)) + j];
+              Math.abs(j - texCoordsBufferInfo.data[i * (Math.max(stride, texCoordsBufferInfo.stride)) + j]); // This flips the y-coordinate
           }
           o++;
         }

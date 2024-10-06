@@ -131,7 +131,6 @@ export default class Player {
       else {
         this.animatedMesh.animate(1, dt);
       }
-      
     }
   }
 }

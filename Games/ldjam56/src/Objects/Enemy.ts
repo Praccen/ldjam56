@@ -70,7 +70,7 @@ export default class Enemy {
         scene
             .addNewAnimatedMesh(
                 "Assets/gltf/Rat/RatWalking.gltf",
-                "CSS:rgb(150, 0, 0)",
+                "Assets/gltf/Rat/Image_3.png",
                 "CSS:rgb(0,0,0)"
             )
             .then((aMeshBundle) => {
