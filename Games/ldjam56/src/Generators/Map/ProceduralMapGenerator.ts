@@ -250,12 +250,12 @@ export default class ProceduralMap {
     this.focusRoom = vec2.fromValues(-1.0, -1.0);
 
     const mapLayout = `
-A22222
+A2222B
 225222
 224422
 224422
 222222
-22222A
+B2222A
 `;
 
     // `

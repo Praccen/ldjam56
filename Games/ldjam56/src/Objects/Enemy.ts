@@ -8,6 +8,8 @@ import {
     Scene,
     vec2,
     vec3,
+    quat,
+    mat4,
     PointLight,
     AnimatedGraphicsBundle,
 } from "praccen-web-engine";
@@ -28,6 +30,7 @@ export default class Enemy {
     private map: ProceduralMap;
     private animatedMesh: AnimatedGraphicsBundle;
     physicsObj: PhysicsObject;
+    private currentRotation: quat = quat.create();
 
     constructor(
         scene: Scene,
@@ -65,26 +68,29 @@ export default class Enemy {
         this.animatedMesh = null;
 
         scene
-        .addNewAnimatedMesh(
-            "Assets/gltf/Rat/RatWalking.gltf",
-            "CSS:rgb(150, 0, 0)",
-            "CSS:rgb(0,0,0)"
-        )
-        .then((aMeshBundle) => {
-            this.animatedMesh = aMeshBundle;
-            vec3.copy(aMeshBundle.transform.position, this.targetPos);
+            .addNewAnimatedMesh(
+                "Assets/gltf/Rat/RatWalking.gltf",
+                "CSS:rgb(150, 0, 0)",
+                "CSS:rgb(0,0,0)"
+            )
+            .then((aMeshBundle) => {
+                this.animatedMesh = aMeshBundle;
+                vec3.copy(aMeshBundle.transform.position, this.targetPos);
+                aMeshBundle.transform.scale = vec3.fromValues(0.5, 0.5, 0.5);
 
-            this.physicsObj = physicsScene.addNewPhysicsObject(aMeshBundle.transform);
-            this.physicsObj.isStatic = false;
-            this.physicsObj.isImmovable = false;
-            this.physicsObj.frictionCoefficient = 1.0;
-        });
+                this.physicsObj = physicsScene.addNewPhysicsObject(
+                    aMeshBundle.transform
+                );
+                this.physicsObj.isStatic = false;
+                this.physicsObj.isImmovable = false;
+                this.physicsObj.frictionCoefficient = 1.0;
+            });
     }
 
     updateTargetPos() {
         if (
             vec3.distance(this.physicsObj.transform.position, this.targetPos) <
-            1.3
+            3.5
         ) {
             if (this.pathFirst.length == 0) {
                 // Clone array
@@ -144,27 +150,51 @@ export default class Enemy {
         towardsTargetVector[1] = 0.0;
         let distance = vec3.len(towardsTargetVector);
         vec3.normalize(towardsTargetVector, towardsTargetVector);
+
+        this.smoothTurnTowardsTarget(towardsTargetVector);
+
+        let currentDirection = this.getCurrentForwardDirection();
+
         vec3.scaleAndAdd(
             this.physicsObj.force,
             this.physicsObj.force,
-            towardsTargetVector,
+            currentDirection,
             3.0 * Math.max(distance, 10.0)
         );
     }
 
+    smoothTurnTowardsTarget(targetDirection: vec3) {
+        let targetRotation = quat.create();
+        quat.rotationTo(
+            targetRotation,
+            vec3.fromValues(0, 0, 1),
+            targetDirection
+        );
+
+        const rotationSpeed = 0.01;
+        quat.slerp(
+            this.currentRotation,
+            this.currentRotation,
+            targetRotation,
+            rotationSpeed
+        );
+
+        let newRotationMatrix = mat4.create();
+        mat4.fromQuat(newRotationMatrix, this.currentRotation);
+        mat4.getRotation(this.physicsObj.transform.rotation, newRotationMatrix);
+    }
+
+    getCurrentForwardDirection(): vec3 {
+        let forward = vec3.fromValues(0, 0, 1);
+        vec3.transformQuat(forward, forward, this.currentRotation);
+        return forward;
+    }
+
     updateLightPos() {
         if (this.lightSource != undefined) {
-            // Get the direction the enemy is moving towards (normalize towardsTargetVector)
-            let forwardDirection = vec3.sub(
-                vec3.create(),
-                this.targetPos,
-                this.physicsObj.transform.position
-            );
-            forwardDirection[1] = 0;
-            vec3.normalize(forwardDirection, forwardDirection);
+            let forwardDirection = this.getCurrentForwardDirection();
 
-            // Offset the light position slightly in front of the enemy
-            const lightOffsetDistance = 1.0; // Adjust this value to control how far in front the light is
+            const lightOffsetDistance = 2.0;
             let lightPosition = vec3.scaleAndAdd(
                 vec3.create(),
                 this.physicsObj.transform.position,
@@ -172,8 +202,6 @@ export default class Enemy {
                 lightOffsetDistance
             );
             vec3.add(lightPosition, lightPosition, vec3.fromValues(0, 1, 0));
-
-            // Set the light's position
 
             vec3.copy(this.lightSource.position, lightPosition);
         }
