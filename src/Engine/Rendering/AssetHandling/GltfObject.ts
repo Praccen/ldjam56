@@ -691,7 +691,7 @@ export default class GltfObject {
 
     let boneMatrices = new Array<mat4>();
     for (const joint of this.skins[skinIdx].joints) {
-      boneMatrices.push(mat4.clone(this.nodes[joint].transform.matrix));
+      boneMatrices.push(this.nodes[joint].transform.matrix);
     }
 
     return boneMatrices;
