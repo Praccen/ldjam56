@@ -8,6 +8,7 @@ import {
   vec2,
   vec3,
 } from "praccen-web-engine";
+import { PointLight } from "../../../../dist/Engine.js";
 import { Input } from "../Input.js";
 import { Factories } from "../Utils/Factories.js";
 
@@ -15,14 +16,29 @@ export default class Player {
   private physicsScene: PhysicsScene;
   private playerTargetPos: vec3;
   physicsObj: PhysicsObject;
+  private lightSource: PointLight;
 
-  constructor(scene: Scene, physicsScene: PhysicsScene, playerSpawnRoom: vec2) {
+  constructor(
+    scene: Scene,
+    physicsScene: PhysicsScene,
+    playerSpawnRoom: vec2,
+    lightSource: PointLight
+  ) {
     this.physicsScene = physicsScene;
     this.playerTargetPos = vec3.fromValues(
       playerSpawnRoom[0] * 10.0 + 5.0,
       1.0,
       playerSpawnRoom[1] * 10.0 + 5.0
     );
+
+    this.lightSource = lightSource;
+    this.lightSource.castShadow = true;
+    this.lightSource.constant = 1.0;
+    this.lightSource.linear = 0.7;
+    this.lightSource.quadratic = 0.1;
+
+    vec3.set(this.lightSource.colour, 1, 0.575, 0.161);
+
     this.physicsObj = null;
     Factories.createMesh(
       scene,
@@ -37,6 +53,18 @@ export default class Player {
       this.physicsObj.frictionCoefficient = 1.0;
       mesh.transform.origin[1] = -0.5;
     });
+  }
+  updateLightPos() {
+    if (this.lightSource != undefined) {
+      vec3.copy(
+        this.lightSource.position,
+        vec3.add(
+          vec3.create(),
+          this.physicsObj.transform.position,
+          vec3.fromValues(0, 3, 0)
+        )
+      );
+    }
   }
 
   update(dt: number, camera: Camera, renderer: Renderer3D) {
@@ -76,6 +104,7 @@ export default class Player {
         50.0 * Math.min(distance, 4.0)
       );
     }
+    this.updateLightPos();
   }
 
   preRenderingUpdate(dt: number) {}

@@ -70,36 +70,37 @@ scene.getDirectionalLight().ambientMultiplier = 0.0;
 vec3.set(scene.getDirectionalLight().colour, 1.0, 0.3, 0.0);
 vec3.set(scene.getDirectionalLight().direction, 0.001, 1.0, 0.0);
 
-let pointLights = [];
-for (let i = 0; i < 2; i++) {
-  let tempLight = scene.addNewPointLight();
-  if (tempLight == undefined) {
-    break;
-  }
+// let pointLights = [];
+// for (let i = 0; i < 2; i++) {
+//   break;
+//   let tempLight = scene.addNewPointLight();
+//   if (tempLight == undefined) {
+//     break;
+//   }
 
-  pointLights.push(tempLight);
-  pointLights[i].castShadow = true;
-  vec3.set(pointLights[i].colour, 1.5, 1.5, 1.5);
+//   pointLights.push(tempLight);
+//   pointLights[i].castShadow = true;
+//   vec3.set(pointLights[i].colour, 1.5, 1.5, 1.5);
 
-  if (!pointLights[i].castShadow) {
-    pointLights[i].linear *= 0.3;
-    pointLights[i].constant *= 0.3;
-    pointLights[i].quadratic *= 0.3;
-  }
+//   if (!pointLights[i].castShadow) {
+//     pointLights[i].linear *= 0.3;
+//     pointLights[i].constant *= 0.3;
+//     pointLights[i].quadratic *= 0.3;
+//   }
 
-  vec3.set(pointLights[i].position, 10.0, 2.0, 0.0);
-  const pointLightPosCookie = GetCookie("pointLights[" + i + "]Pos");
-  if (pointLightPosCookie != "") {
-    vec3.set(
-      pointLights[i].position,
-      parseFloat(pointLightPosCookie.split(":")[0]),
-      parseFloat(pointLightPosCookie.split(":")[1]),
-      parseFloat(pointLightPosCookie.split(":")[2])
-    );
-  }
-}
+//   vec3.set(pointLights[i].position, 10.0, 2.0, 0.0);
+//   const pointLightPosCookie = GetCookie("pointLights[" + i + "]Pos");
+//   if (pointLightPosCookie != "") {
+//     vec3.set(
+//       pointLights[i].position,
+//       parseFloat(pointLightPosCookie.split(":")[0]),
+//       parseFloat(pointLightPosCookie.split(":")[1]),
+//       parseFloat(pointLightPosCookie.split(":")[2])
+//     );
+//   }
+// }
 
-scene.directionalLight.shadowFocusPos = pointLights[0].position;
+// scene.directionalLight.shadowFocusPos = pointLights[0].position;
 scene.directionalLight.shadowCameraDistance = 100;
 scene.directionalLight.lightProjectionBoxSideLength = 100;
 
@@ -137,10 +138,12 @@ let gameTimer: number = 0.0;
 
 let map = new ProceduralMap(scene, physicsScene);
 let playerSpawnRoom = map.getPlayerSpawnRoom();
-let player = new Player(scene, physicsScene, playerSpawnRoom);
+let playerPointLight = scene.addNewPointLight();
+let player = new Player(scene, physicsScene, playerSpawnRoom, playerPointLight);
 let enemies = new Array<Enemy>();
 for (let i = 0; i < map.getNumEnemies(); i++) {
   let path = map.getEnemyPath(i);
+  let pointLight = scene.addNewPointLight();
   let enemy = new Enemy(
     scene,
     physicsScene,
@@ -149,7 +152,7 @@ for (let i = 0; i < map.getNumEnemies(); i++) {
     map,
     enemies,
     i % 2 == 0,
-    i
+    pointLight
   );
   enemies.push(enemy);
 }
@@ -314,7 +317,7 @@ function preRendereringUpdate(dt: number) {
 
     camera.setPitchJawDegrees(pitch, jaw); // Update the rotation of the camera
 
-    scene.getDirectionalLight().shadowFocusPos = pointLights[0].position;
+    // scene.getDirectionalLight().shadowFocusPos = pointLights[0].position;
 
     // console.log(camera.getPosition());
   }
@@ -331,12 +334,12 @@ function preRendereringUpdate(dt: number) {
 
   if (Input.keys["E"]) {
     let pointLightIndex = 0;
-    for (let i = 0; i < pointLights.length; i++) {
-      if (Input.keys[(i + 1).toString()]) {
-        pointLightIndex = i;
-        break;
-      }
-    }
+    // for (let i = 0; i < pointLights.length; i++) {
+    //   if (Input.keys[(i + 1).toString()]) {
+    //     pointLightIndex = i;
+    //     break;
+    //   }
+    // }
 
     let rect = renderer.domElement.getClientRects()[0];
     let ndc = vec2.fromValues(
@@ -348,15 +351,15 @@ function preRendereringUpdate(dt: number) {
 
     let ray = MousePicking.GetRay(camera, ndc);
     let dist = physicsScene.doRayCast(ray);
-    if (dist < Infinity) {
-      vec3.scaleAndAdd(
-        pointLights[pointLightIndex].position,
-        camera.getPosition(),
-        ray.getDir(),
-        dist
-      );
-      pointLights[pointLightIndex].position[1] += 3.0;
-    }
+    // if (dist < Infinity) {
+    //   vec3.scaleAndAdd(
+    //     pointLights[pointLightIndex].position,
+    //     camera.getPosition(),
+    //     ray.getDir(),
+    //     dist
+    //   );
+    //   pointLights[pointLightIndex].position[1] += 3.0;
+    // }
   }
 
   // Update sensitivity according to sensitivity slider
@@ -470,16 +473,16 @@ window.addEventListener("beforeunload", function (e: BeforeUnloadEvent) {
   SetCookie("sensitivity", gui.sensitivitySlider.getValue());
   SetCookie("ambientMultiplier", gui.ambientSlider.getValue());
   SetCookie("volumetric", gui.volumetricLightingCheckbox.getChecked());
-  for (let i = 0; i < pointLights.length; i++) {
-    SetCookie(
-      "pointLights[" + i + "]Pos",
-      pointLights[i].position[0] +
-        ":" +
-        pointLights[i].position[1] +
-        ":" +
-        pointLights[i].position[2]
-    );
-  }
+  // for (let i = 0; i < pointLights.length; i++) {
+  //   SetCookie(
+  //     "pointLights[" + i + "]Pos",
+  //     pointLights[i].position[0] +
+  //       ":" +
+  //       pointLights[i].position[1] +
+  //       ":" +
+  //       pointLights[i].position[2]
+  //   );
+  // }
   SetCookie("cameraFollow", gui.cameraFollowCheckbox.getChecked());
 });
 

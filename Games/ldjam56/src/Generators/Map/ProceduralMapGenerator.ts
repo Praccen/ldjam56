@@ -248,12 +248,12 @@ export default class ProceduralMap {
     this.focusRoom = vec2.fromValues(-1.0, -1.0);
 
     const mapLayout = `
-BFGE2A
-H2522D
-C2442C
+A2222B
+225222
 224422
-D2222H
-A2EGFB
+224422
+222222
+B2222A
 `;
 
     // `
@@ -347,7 +347,7 @@ A2EGFB
         }
         if (Number(row[columnNr]) > 5 || isNaN(+row[columnNr])) {
           mustGoRooms.push([columnNr, rowNr]);
-          connectionRooms.push([columnNr, rowNr]);
+          // connectionRooms.push([columnNr, rowNr]);
           let num = row[columnNr];
           if (!this.enemyPaths.has(num)) {
             this.enemyNumbers.push(num);
@@ -376,7 +376,7 @@ A2EGFB
       mustGoRooms,
       noGoRooms,
       connectionRooms,
-      0.85
+      0.95
     );
 
     this.floorPhysicsObject = physicsScene.addNewPhysicsObject();

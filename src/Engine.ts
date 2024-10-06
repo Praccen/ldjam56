@@ -17,6 +17,7 @@ import Slider from "./Engine/Rendering/GUI/Objects/Slider";
 import Checkbox from "./Engine/Rendering/GUI/Objects/Checkbox";
 import Button from "./Engine/Rendering/GUI/Objects/Button";
 import Div from "./Engine/Rendering/GUI/Objects/Div";
+import PointLight from "./Engine/Rendering/Objects/Lighting/PointLight";
 
 // Rendering exports
 export {
@@ -36,6 +37,8 @@ export * from "gl-matrix";
 export { Transform };
 // GUI exports
 export { TextObject2D, TextObject3D, Slider, Checkbox, Button, Div };
+// Graphics
+export { PointLight };
 
 // Global exports
 export let applicationStartTime = Date.now();
