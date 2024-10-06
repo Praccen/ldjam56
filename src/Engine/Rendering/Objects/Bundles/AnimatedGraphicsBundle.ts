@@ -26,9 +26,9 @@ export default class AnimatedGraphicsBundle extends GraphicsBundle {
     this.animationTimer = 0.0;
   }
 
-  animate(dt: number) {
+  animate(animationIndex: number, dt: number) {
     this.animationTimer += dt;
-    this.gltfObject.animate(0, this.animationTimer);
+    this.gltfObject.animate(animationIndex, this.animationTimer);
     this.boneMatrices = this.gltfObject.getBoneMatrices(0);
     for (let i = 0; i < this.boneMatrices.length; i++) {
       mat4.mul(
