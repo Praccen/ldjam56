@@ -89,21 +89,9 @@ export default class Scene {
             this.renderer.gl,
             this.renderer.textureStore.getTexture(diffusePath),
             this.renderer.textureStore.getTexture(specularPath),
-            mesh.go,
-            mesh.gltfObject
+            mesh
           )
         ) - 1;
-      this.graphicBundlesAnimated[index].bindPose =
-        mesh.gltfObject.getBindPose(0);
-
-      
-      this.graphicBundlesAnimated[index].boneMatrices = mesh.gltfObject.getBoneMatrices(0);
-      for (let i = 0; i < this.graphicBundlesAnimated[index].boneMatrices.length; i++) {
-        mat4.mul(
-          this.graphicBundlesAnimated[index].boneMatrices[i],
-          this.graphicBundlesAnimated[index].boneMatrices[i], 
-          this.graphicBundlesAnimated[index].bindPose[i]);
-      }
 
       return this.graphicBundlesAnimated[index];
     });

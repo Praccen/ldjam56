@@ -9,27 +9,34 @@ export default class AnimatedGraphicsBundle extends GraphicsBundle {
   boneTexture: Texture;
   boneMatrices: mat4[];
   bindPose: mat4[];
-  gltfObject: GltfObject;
+  graphicsObjectAndGltfObject: {go: GraphicsObject, gltfObject: GltfObject};
   animationTimer: number;
 
   constructor(
     gl: WebGL2RenderingContext,
     diffuse: Texture,
     specular: Texture,
-    graphicsObject: GraphicsObject,
-    gltfObject: GltfObject,
+    graphicsObjectAndGltfObject: {go: GraphicsObject, gltfObject: GltfObject},    
     emissionMap?: Texture
   ) {
-    super(gl, diffuse, specular, graphicsObject, emissionMap, false);
+    super(gl, diffuse, specular, graphicsObjectAndGltfObject.go, emissionMap, false);
     this.boneTexture = new Texture(gl, false, gl.RGBA32F, gl.RGBA, gl.FLOAT);
-    this.gltfObject = gltfObject;
+    this.graphicsObjectAndGltfObject = graphicsObjectAndGltfObject;
     this.animationTimer = 0.0;
   }
 
   animate(animationIndex: number, dt: number) {
+    if (this.graphicsObjectAndGltfObject.gltfObject == undefined) {
+      return;
+    }
     this.animationTimer += dt;
-    this.gltfObject.animate(animationIndex, this.animationTimer);
-    this.boneMatrices = this.gltfObject.getBoneMatrices(0);
+    this.graphicsObjectAndGltfObject.gltfObject.animate(animationIndex, this.animationTimer);
+    this.boneMatrices = this.graphicsObjectAndGltfObject.gltfObject.getBoneMatrices(0);
+
+    if (this.bindPose == undefined) {
+      this.bindPose = this.graphicsObjectAndGltfObject.gltfObject.getBindPose(0);
+    }
+
     for (let i = 0; i < this.boneMatrices.length; i++) {
       mat4.mul(
         this.boneMatrices[i],
@@ -40,6 +47,10 @@ export default class AnimatedGraphicsBundle extends GraphicsBundle {
   }
 
   createBoneTexture() {
+    if (this.boneMatrices == undefined) {
+      return;
+    }
+
     let bonesTextureData = new Float32Array(this.boneMatrices.length * 16);
     for (let i = 0; i < this.boneMatrices.length; i++) {
       for (let j = 0; j < 16; j++) {

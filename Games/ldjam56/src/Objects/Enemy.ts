@@ -9,6 +9,7 @@ import {
     vec2,
     vec3,
     PointLight,
+    AnimatedGraphicsBundle,
 } from "praccen-web-engine";
 import ProceduralMap from "../Generators/Map/ProceduralMapGenerator.js";
 
@@ -25,6 +26,7 @@ export default class Enemy {
     private player: Player;
     private lightSource: PointLight;
     private map: ProceduralMap;
+    private animatedMesh: AnimatedGraphicsBundle;
     physicsObj: PhysicsObject;
 
     constructor(
@@ -60,19 +62,22 @@ export default class Enemy {
         this.pathSecond.unshift(this.pathFirst.shift());
 
         this.physicsObj = null;
-        Factories.createMesh(
-            scene,
-            "Assets/objs/cube.obj",
-            this.targetPos,
-            vec3.fromValues(1.0, 2.0, 1.0),
+        this.animatedMesh = null;
+
+        scene
+        .addNewAnimatedMesh(
+            "Assets/gltf/Rat/RatWalking.gltf",
             "CSS:rgb(150, 0, 0)",
-            "CSS:rgb(0, 0, 0)"
-        ).then((mesh) => {
-            this.physicsObj = physicsScene.addNewPhysicsObject(mesh.transform);
+            "CSS:rgb(0,0,0)"
+        )
+        .then((aMeshBundle) => {
+            this.animatedMesh = aMeshBundle;
+            vec3.copy(aMeshBundle.transform.position, this.targetPos);
+
+            this.physicsObj = physicsScene.addNewPhysicsObject(aMeshBundle.transform);
             this.physicsObj.isStatic = false;
             this.physicsObj.isImmovable = false;
             this.physicsObj.frictionCoefficient = 1.0;
-            mesh.transform.origin[1] = -0.5;
         });
     }
 
@@ -218,6 +223,12 @@ export default class Enemy {
                     }
                 }
             }
+        }
+    }
+
+    preRenderingUpdate(dt: number) {
+        if (this.animatedMesh != undefined) {
+            this.animatedMesh.animate(0, dt);
         }
     }
 

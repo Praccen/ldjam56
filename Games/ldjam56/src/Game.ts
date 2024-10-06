@@ -167,11 +167,13 @@ let animatedTestMesh: AnimatedGraphicsBundle = null;
 scene
   .addNewAnimatedMesh(
     // "Assets/gltf/VampireDance.gltf",
-    "Assets/gltf/Mouse/mouse.gltf",
+    // "Assets/gltf/Mouse/mouse.gltf",
+    "Assets/gltf/Rat/RatWalking.gltf",
     // "Assets/gltf/SimpleSkin/glTF/SimpleSkin.gltf",
     // "Assets/gltf/SimpleSkin/simple.gltf",
     // "Assets/gltf/VampireDanceTextures/Vampire_diffuse.png",
-    "Assets/gltf/Mouse/Feldmaus_Diffuse.png",
+    // "Assets/gltf/Rat/Image_3.png",
+    "CSS:rgb(100,100,100)",
     // "CSS:rgb(255,0,0)",
     // "Assets/Textures/water.png",
     "CSS:rgb(0,0,0)"
@@ -446,7 +448,11 @@ function preRendereringUpdate(dt: number) {
   }
 
   if (animatedTestMesh != undefined) {
-    animatedTestMesh.animate(1, dt);
+    animatedTestMesh.animate(0, dt);
+  }
+
+  for (const enemy of enemies) {
+    enemy.preRenderingUpdate(dt);
   }
 }
 

@@ -88,6 +88,7 @@ export default class MeshStore {
     });
     let newlyCreatedMesh = this.animatedMeshMap.get(path);
     return this.parseGltfContent(path).then((gltfObject) => {
+      newlyCreatedMesh.gltfObject = gltfObject;
       if (gltfObject.getNumMeshes() > 0) {
         const data = gltfObject.getBufferData(0);
         if (data.length > 0) {
@@ -95,7 +96,6 @@ export default class MeshStore {
           if (data[0].indexData.length > 0) {
             newlyCreatedMesh.go.setIndexData(data[0].indexData);
           }
-          newlyCreatedMesh.gltfObject = gltfObject;
           
           // // positions
           // console.log("Positions");
