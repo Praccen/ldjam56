@@ -124,14 +124,13 @@ export default class Player {
 
   preRenderingUpdate(dt: number) {
     if (this.animatedMesh != undefined) {
-      // if (vec3.len(this.physicsObj.velocity) > 0.1) {
-      //   this.animatedMesh.animate(2, dt, 0.2, 1.6);
-      // }
-      // else {
-      //   this.animatedMesh.animate(1, dt);
-      // }
+      if (vec3.len(this.physicsObj.velocity) > 1.0) {
+        this.animatedMesh.animate(2, dt, 1.2, 2.0);
+      }
+      else {
+        this.animatedMesh.animate(1, dt);
+      }
       
-      this.animatedMesh.animate(2, dt, 1.2, 2.0);
     }
   }
 }
