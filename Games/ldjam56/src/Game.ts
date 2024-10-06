@@ -261,8 +261,21 @@ function update(dt: number) {
 function preRendereringUpdate(dt: number) {
   if (gui.cameraFollowCheckbox.getChecked() && player.physicsObj != undefined) {
     let offsetVec = vec3.fromValues(0.0, 15.0, 6.0);
+    let x = player.physicsObj.transform.position[0];
+    let y = player.physicsObj.transform.position[1];
+    let z = player.physicsObj.transform.position[2];
+    if (x > map.getMapSize()[0] - 25) {
+      x = map.getMapSize()[0] - 25;
+    } else if (x < 25) {
+      x = 25;
+    }
+    if (z > map.getMapSize()[1] - 10) {
+      z = map.getMapSize()[1] - 10;
+    } else if (z < 18) {
+      z = 18;
+    }
     camera.setPosition(
-      vec3.add(vec3.create(), player.physicsObj.transform.position, offsetVec)
+      vec3.add(vec3.create(), vec3.fromValues(x, y, z), offsetVec)
     );
     camera.setDir(vec3.negate(vec3.create(), offsetVec));
     scene.getDirectionalLight().shadowFocusPos = vec3.fromValues(
