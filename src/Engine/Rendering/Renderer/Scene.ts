@@ -95,8 +95,11 @@ export default class Scene {
       this.graphicBundlesAnimated[index].bindPose =
         mesh.gltfObject.getBindPose(0);
         
-      const headIndex = mesh.gltfObject.nodeNameToIndexMap.get("mixamorig:Head");
-      vec3.set(mesh.gltfObject.nodes[headIndex].transform.position, 10000.0, 11110.0, 51240.0);
+      // const headIndex = mesh.gltfObject.nodeNameToIndexMap.get("mixamorig:Head");
+      // vec3.set(mesh.gltfObject.nodes[headIndex].transform.position, 10000.0, 11110.0, 51240.0);
+      // quat.fromEuler(mesh.gltfObject.nodes[headIndex].transform.rotation, 0.0, 150.0, 0.0);
+      
+      // quat.fromEuler(mesh.gltfObject.nodes[1].transform.rotation, 0.0, 0.0, 90.0);
 
       this.graphicBundlesAnimated[index].boneMatrices = mesh.gltfObject.getBoneMatrices(0);
       for (let i = 0; i < this.graphicBundlesAnimated[index].boneMatrices.length; i++) {

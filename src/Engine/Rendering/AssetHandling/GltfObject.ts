@@ -190,6 +190,7 @@ class GltfAccessor {
   bufferView: number = -1;
   componentType: number = -1;
   count: number = 0;
+  byteOffset: number = 0;
   type: string = "";
   max: vec3; // TODO: figure out if these are needed or if I can just skip them because I can calculate bounding boxes myself.
   min: vec3; // TODO: figure out if these are needed or if I can just skip them because I can calculate bounding boxes myself.
@@ -207,6 +208,7 @@ class GltfAccessor {
       "componentType"
     );
     setPropertyWithoutTypeConversion(gltfAccessor, "count", this, "count");
+    setPropertyWithoutTypeConversion(gltfAccessor, "byteOffset", this, "byteOffset");
     setPropertyWithoutTypeConversion(gltfAccessor, "type", this, "type");
   }
 }
@@ -405,13 +407,15 @@ export default class GltfObject {
         this.accessors[primitive.attributes[attribute]].bufferView
       ];
     let buffer = bufferView.buffer;
-    let offset = bufferView.byteOffset;
+    let offset = bufferView.byteOffset + this.accessors[primitive.attributes[attribute]].byteOffset;
     let stride = bufferView.byteStride;
-    let length = bufferView.byteLength;
+    let length = bufferView.byteLength - this.accessors[primitive.attributes[attribute]].byteOffset;
     return {
       buffer: buffer,
       offset: offset,
-      stride: stride,
+      stride: stride / glTypeToByteSize[
+        this.accessors[primitive.attributes[attribute]].componentType
+      ],
       length: length,
       data: new glTypeToTypedArrayMap[
         this.accessors[primitive.attributes[attribute]].componentType
@@ -436,9 +440,9 @@ export default class GltfObject {
     const bufferView =
       this.bufferViews[this.accessors[primitive.indices].bufferView];
     let buffer = bufferView.buffer;
-    let offset = bufferView.byteOffset;
+    let offset = bufferView.byteOffset + this.accessors[primitive.indices].byteOffset;
     let stride = bufferView.byteStride;
-    let length = bufferView.byteLength;
+    let length = bufferView.byteLength - this.accessors[primitive.indices].byteOffset;
     return {
       buffer: buffer,
       offset: offset,
@@ -465,9 +469,9 @@ export default class GltfObject {
     const bufferView =
       this.bufferViews[this.accessors[skin.inverseBindMatrices].bufferView];
     let buffer = bufferView.buffer;
-    let offset = bufferView.byteOffset;
+    let offset = bufferView.byteOffset + this.accessors[skin.inverseBindMatrices].byteOffset;
     let stride = bufferView.byteStride;
-    let length = bufferView.byteLength;
+    let length = bufferView.byteLength - this.accessors[skin.inverseBindMatrices].byteOffset;
     return {
       buffer: buffer,
       offset: offset,
@@ -586,7 +590,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              positionsBufferInfo.data[i * stride + j];
+              positionsBufferInfo.data[i * (stride + positionsBufferInfo.stride) + j];
           }
           o++;
         }
@@ -598,7 +602,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              normalBufferInfo.data[i * stride + j];
+              normalBufferInfo.data[i * (stride + normalBufferInfo.stride) + j];
           }
           o++;
         }
@@ -610,7 +614,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              texCoordsBufferInfo.data[i * stride + j];
+              texCoordsBufferInfo.data[i * (stride + texCoordsBufferInfo.stride) + j];
           }
           o++;
         }
@@ -622,7 +626,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              weightsBufferInfo.data[i * stride + j];
+              weightsBufferInfo.data[i * (stride + weightsBufferInfo.stride)  + j];
           }
           o++;
         }
@@ -634,7 +638,7 @@ export default class GltfObject {
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              jointsBufferInfo.data[i * stride + j];
+              jointsBufferInfo.data[i * (stride + jointsBufferInfo.stride) + j];
           }
           o++;
         }
@@ -642,7 +646,7 @@ export default class GltfObject {
 
       let indicesBufferInfo = this.getBufferInfoForIndex(primitive);
       for (let i = 0; i < numberOfIndices; i++) {
-        buffers[bufferIndex].indexData[i] = indicesBufferInfo.data[i];
+        buffers[bufferIndex].indexData[i] = indicesBufferInfo.data[i * (1 + indicesBufferInfo.stride)];
       }
     }
     return buffers;
@@ -662,22 +666,22 @@ export default class GltfObject {
       inverseBindMatrices.push(
         mat4.set(
           mat4.create(),
-          ibd[i + 0],
-          ibd[i + 1],
-          ibd[i + 2],
-          ibd[i + 3],
-          ibd[i + 4],
-          ibd[i + 5],
-          ibd[i + 6],
-          ibd[i + 7],
-          ibd[i + 8],
-          ibd[i + 9],
-          ibd[i + 10],
-          ibd[i + 11],
-          ibd[i + 12],
-          ibd[i + 13],
-          ibd[i + 14],
-          ibd[i + 15]
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 0],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 1],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 2],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 3],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 4],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 5],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 6],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 7],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 8],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 9],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 10],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 11],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 12],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 13],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 14],
+          ibd[i * (1 + inverseBindMatricesBufferInfo.stride) + 15]
         )
       );
     }
