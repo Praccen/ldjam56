@@ -5,9 +5,9 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
+    "praccen-web-engine": "file:../..",
     "prettier": "^2.7.1",
-    "typescript-language-server": "^4.3.3",
-    "praccen-web-engine": "1.0.0"
+    "typescript-language-server": "^4.3.3"
   },
   "version": "1.0.0",
   "description": "Game Tsup build project",
