@@ -1,21 +1,30 @@
 import {
+  AnimatedGraphicsBundle,
   Button,
+  Camera,
   Checkbox,
   Div,
   GUIRenderer,
+  quat,
   Renderer3D,
+  Scene,
   Slider,
 } from "praccen-web-engine";
 import { GetCookie, SetCookie } from "../Utils/WebUtils.js";
 import {Howler} from "howler";
+import { vec3 } from "gl-matrix";
+import { Factories } from "../Utils/Factories.js";
 
 export default class Menu {
   private guiRenderer: GUIRenderer;
+  private menuRendererDiv: Div;
   private menuDiv: Div;
   private optionsDiv: Div;
-  // private menuRenderer: Renderer3D;
-  // private menuScene: Scene;
-  // private menuCamera: Camera;
+  private menuRenderer: Renderer3D;
+  private menuScene: Scene;
+  private menuCamera: Camera;
+
+  private mouse: AnimatedGraphicsBundle;
 
   enabled: boolean;
 
@@ -23,9 +32,21 @@ export default class Menu {
     this.guiRenderer = guiRenderer;
     let self = this;
 
-    this.menuDiv = guiRenderer.getNewDiv();
+    this.menuRendererDiv = guiRenderer.getNewDiv();
+    this.menuRendererDiv.getElement().style.top = "0%";
+    this.menuRendererDiv.getElement().style.height = "100%";
+    this.menuRendererDiv.getElement().style.left = "0%";
+    this.menuRendererDiv.getElement().style.width = "100%";
+    this.menuRendererDiv.ignoreEngineModifiers = true;
+
+    this.menuRendererDiv.getElement().style.position = "absolute";
+    this.menuRendererDiv.getElement().style.zIndex = "0";
+    this.menuRendererDiv.getElement().style.overflow = "hidden";
+
+
+    this.menuDiv = guiRenderer.getNewDiv(this.menuRendererDiv);
     this.menuDiv.ignoreEngineModifiers = true;
-    this.menuDiv.getElement().style.backgroundColor = "#101010";
+    this.menuDiv.getElement().style.backgroundColor = "#00000050";
     this.menuDiv.getElement().style.top = "0%";
     this.menuDiv.getElement().style.height = "100%";
     this.menuDiv.getElement().style.left = "0%";
@@ -33,12 +54,13 @@ export default class Menu {
 
     this.menuDiv.getElement().style.position = "absolute";
     this.menuDiv.getElement().style.zIndex = "4";
-    this.menuDiv.getElement().style.overflow = "hidden";
+    this.menuDiv.getElement().style.overflowX = "hidden";
+    this.menuDiv.getElement().style.overflowY = "auto";
     this.menuDiv.setHidden(false);
     
-    this.optionsDiv = guiRenderer.getNewDiv();
+    this.optionsDiv = guiRenderer.getNewDiv(this.menuRendererDiv);
     this.optionsDiv.ignoreEngineModifiers = true;
-    this.optionsDiv.getElement().style.backgroundColor = "#101010";
+    this.optionsDiv.getElement().style.backgroundColor = "#00000050";
     this.optionsDiv.getElement().style.top = "0%";
     this.optionsDiv.getElement().style.height = "100%";
     this.optionsDiv.getElement().style.left = "0%";
@@ -46,8 +68,55 @@ export default class Menu {
 
     this.optionsDiv.getElement().style.position = "absolute";
     this.optionsDiv.getElement().style.zIndex = "4";
-    this.optionsDiv.getElement().style.overflow = "hidden";
+    this.optionsDiv.getElement().style.overflowX = "hidden";
+    this.optionsDiv.getElement().style.overflowY = "auto";
     this.optionsDiv.setHidden(true);
+
+    // Renderer
+    this.menuRenderer = new Renderer3D();
+    this.menuRendererDiv.getElement().appendChild(this.menuRenderer.domElement);
+
+    this.menuRenderer.useVolumetric = true;
+    this.menuRenderer.setFogTexture("CSS:rgb(255, 255, 255)");
+    this.menuRenderer.setFogDensity(0.05);
+
+    // Scene
+    this.menuScene = new Scene(this.menuRenderer);
+    this.menuScene.getDirectionalLight().ambientMultiplier = 0.0;
+    vec3.set(this.menuScene.getDirectionalLight().colour, 0.3216, 3.0, 0.5922);
+    vec3.set(this.menuScene.getDirectionalLight().direction, 0.001, 1.0, 0.0);
+
+    this.menuScene.directionalLight.shadowCameraDistance = 100;
+    this.menuScene.directionalLight.lightProjectionBoxSideLength = 100;
+    vec3.zero(this.menuScene.directionalLight.shadowFocusPos);
+
+    // Create a camera and set it's starting position
+    this.menuCamera = new Camera();
+    this.menuCamera.setPosition(vec3.fromValues(0.0, 4.0, 4.0));
+    this.menuCamera.setDir(vec3.fromValues(0.0, -1.0, -1.0));
+
+    let pl = this.menuScene.addNewPointLight();
+    pl.castShadow = true;
+    vec3.set(pl.position, 1.0, 3.0, 2.0);
+    pl.setShadowBufferResolution(4096);
+
+    Factories.createMesh(
+      this.menuScene, 
+      "Assets/objs/dungeonPack/floor_tile_extralarge_grates_open.obj",
+      vec3.create(),
+      vec3.fromValues(1.0, 1.0, 1.0),
+      "Assets/Textures/dungeon_texture.png",
+      "CSS:rgb(0, 0, 0)",
+    ).then((mesh) => {
+
+    });
+
+    this.mouse = null;
+    this.menuScene.addNewAnimatedMesh("Assets/gltf/Mouse/mouse.gltf", "Assets/gltf/Mouse/Feldmaus_Diffuse.png", "Assets/gltf/Mouse/Feldmaus_Gloss.png").then((mesh) => {
+      this.mouse = mesh;
+      quat.fromEuler(this.mouse.transform.rotation, 0.0, 180, 0.0);
+      vec3.set(this.mouse.transform.position, 0.0, 0.2, 0.0);
+    });
 
 
     // Main menu
@@ -79,7 +148,8 @@ export default class Menu {
       (ev) => {
         let value = (ev.currentTarget as HTMLInputElement).value;
         SetCookie("volumetricRenderScale", value);
-        gameRenderer.setFogRenderScale(parseFloat(value) * 0.01)
+        gameRenderer.setFogRenderScale(parseFloat(value) * 0.01);
+        self.menuRenderer.setFogRenderScale(parseFloat(value) * 0.01);
       }, 
       "volumetricRenderScale"
     );
@@ -91,6 +161,7 @@ export default class Menu {
         let checked = (ev.currentTarget as HTMLInputElement).checked
         SetCookie("volumetricBlur", checked);
         gameRenderer.setFogBlur(checked);
+        self.menuRenderer.setFogBlur(checked);
       },
       "volumetricBlur"
     );
@@ -164,18 +235,25 @@ export default class Menu {
   }
 
   toggle() {
-    this.menuDiv.toggleHidden();
-    this.enabled = !this.menuDiv.getHidden();
+    this.menuRendererDiv.toggleHidden();
+    this.enabled = !this.menuRendererDiv.getHidden();
+  }
+
+  resize(width: number, height: number) {
+    this.menuRenderer.setSize(width, height, true);
   }
 
   update(dt: number) {
+
   }
 
   preRenderingUpdate(dt: number) {
-
+    if (this.mouse != undefined) {
+      this.mouse.animate(1, dt);
+    }
   }
 
   draw() {
-
+    this.menuRenderer.render(this.menuScene, this.menuCamera);
   }
 }

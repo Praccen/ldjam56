@@ -49,6 +49,10 @@ export default class PointLight {
     );
   }
 
+  setShadowBufferResolution(res: number) {
+    this.pointShadowBuffer.setProportions(res, res);
+  }
+
   bind(
     lightIndex: number,
     depthMapIndex: number,

@@ -416,6 +416,7 @@ function resize() {
   // Update the size of both the renderer and GUI renderer
   renderer.setSize(width, height, true);
   inventory.resize(width, height);
+  menu.resize(width, height);
   guiRenderer.setSize(width, height);
 }
 
