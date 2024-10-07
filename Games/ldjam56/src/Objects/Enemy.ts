@@ -281,7 +281,7 @@ export default class Enemy {
 
     preRenderingUpdate(dt: number) {
         if (this.animatedMesh != undefined) {
-            if(vec3.len(this.physicsObj.velocity) > 0.01) {
+            if(vec3.len(this.physicsObj.velocity) > 1.0) {
                 let keyframe = this.animatedMesh.animate(0, dt);
                 if (keyframe == 10 || keyframe == 28) {
                     this.playStepSound();
