@@ -53,6 +53,7 @@ export default class Menu {
     // Main menu
     this.createButton(this.menuDiv, "Start game", (ev) => {self.toggle()});
     this.createButton(this.menuDiv, "Options", (ev) => {self.menuDiv.setHidden(true); self.optionsDiv.setHidden(false)});
+    this.createButton(this.menuDiv, "Fullscreen", (ev) => {document.getElementById("game").requestFullscreen();})
 
     // Options menu
     this.createButton(this.optionsDiv, "Back to main menu", (ev) => {self.menuDiv.setHidden(false); self.optionsDiv.setHidden(true)});
