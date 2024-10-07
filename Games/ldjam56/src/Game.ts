@@ -107,6 +107,16 @@ let gameTimer: number = 0.0;
 // Setup howler
 Howler.pos(0, 0, 0);
 
+let themeMusic = new Howl({
+    src: ["Assets/Audio/Mysterious Forest Music.mp3"],
+    volume: 0.1,
+    rate: 1.0,
+    loop: true,
+    spatial: true,
+});
+
+themeMusic.play();
+
 let map = new ProceduralMap(scene, physicsScene);
 let playerSpawnRoom = map.getPlayerSpawnRoom();
 let playerPointLight = scene.addNewPointLight();

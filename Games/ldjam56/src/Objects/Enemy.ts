@@ -67,7 +67,7 @@ export default class Enemy {
 
         this.enemyStep = new Howl({
             src: ["Assets/Audio/foot_down.wav"],
-            volume: 1.0,
+            volume: 5.0,
             rate: 1.0,
             spatial: true,
             pos: [this.targetPos[0], this.targetPos[1], this.targetPos[2]],
@@ -158,13 +158,9 @@ export default class Enemy {
     }
 
     playStepSound() {
-        if(vec3.len(this.physicsObj.velocity) > 0.01) {
-            if (!this.enemyStep.playing()) {
-                this.enemyStep.play();
-                this.enemyStep.pos(this.physicsObj.transform.position);
-            }
-        } else {
-            this.enemyStep.stop();
+        if (!this.enemyStep.playing()) {
+            this.enemyStep.play();
+            this.enemyStep.pos(this.physicsObj.transform.position);
         }
     }
 
@@ -285,9 +281,11 @@ export default class Enemy {
 
     preRenderingUpdate(dt: number) {
         if (this.animatedMesh != undefined) {
-            let keyframe = this.animatedMesh.animate(0, dt);
-            if (keyframe == 10 || keyframe == 28) {
-                this.playStepSound();
+            if(vec3.len(this.physicsObj.velocity) > 0.01) {
+                let keyframe = this.animatedMesh.animate(0, dt);
+                if (keyframe == 10 || keyframe == 28) {
+                    this.playStepSound();
+                }
             }
         }
     }
