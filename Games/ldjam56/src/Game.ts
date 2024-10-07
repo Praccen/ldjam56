@@ -153,7 +153,8 @@ for (let i = 0; i < map.getNumEnemies(); i++) {
     enemies,
     i % 2 == 0,
     pointLight,
-    player
+    player,
+    renderer
   );
   enemies.push(enemy);
 }

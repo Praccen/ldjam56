@@ -41,7 +41,8 @@ export default class Enemy {
         enemies: Enemy[],
         reverse: boolean,
         lightSource: PointLight,
-        player: Player
+        player: Player,
+        renderer: Renderer3D
     ) {
         this.physicsScene = physicsScene;
         this.map = map;
@@ -70,10 +71,12 @@ export default class Enemy {
         scene
             .addNewAnimatedMesh(
                 "Assets/gltf/Rat/RatWalking.gltf",
-                "Assets/gltf/Rat/Image_3.png",
+                "Assets/gltf/Rat/Colour.png",
                 "CSS:rgb(0,0,0)"
             )
             .then((aMeshBundle) => {
+                aMeshBundle.emission = renderer.textureStore.getTexture("Assets/gltf/Rat/Image_3.png");
+
                 this.animatedMesh = aMeshBundle;
                 vec3.copy(aMeshBundle.transform.position, this.targetPos);
                 vec3.set(aMeshBundle.transform.scale, 0.5, 0.5, 0.5);
