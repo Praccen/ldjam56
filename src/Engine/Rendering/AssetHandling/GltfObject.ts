@@ -696,11 +696,12 @@ export default class GltfObject {
     return this.animations.length;
   }
 
-  animate(animationIdx: number, time: number) {
+  animate(animationIdx: number, time: number): number{
     if (animationIdx >= this.animations.length) {
       return;
     }
 
+    let timelineIndex = 0;
     const animation = this.animations[animationIdx];
 
     // Start by getting all timelines so we don't have to do it more than once per input
@@ -733,7 +734,6 @@ export default class GltfObject {
 
       let timeModolo = min + time % (max - min);
 
-      let timelineIndex = 0;
       for (let i = 0; i < value.length; i++) {
         if (timeModolo > value[i]) {
           timelineIndex = i;
@@ -763,5 +763,6 @@ export default class GltfObject {
         vec3.set(this.nodes[channel.target.node].transform.scale, outputBufferInfo.data[scaleIndex], outputBufferInfo.data[scaleIndex + 1], outputBufferInfo.data[scaleIndex + 2]);
       }
     }
+    return timelineIndex;
   }
 }

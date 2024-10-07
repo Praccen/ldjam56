@@ -1,6 +1,4 @@
 import {
-    Camera,
-    MousePicking,
     PhysicsObject,
     PhysicsScene,
     Ray,
@@ -14,24 +12,23 @@ import {
     AnimatedGraphicsBundle,
 } from "praccen-web-engine";
 import ProceduralMap from "../Generators/Map/ProceduralMapGenerator.js";
-
-import { Factories } from "../Utils/Factories.js";
 import Player from "./Player.js";
+import { Howler, Howl } from 'howler';
 
 export default class Enemy {
-    private physicsScene: PhysicsScene;
+    private readonly physicsScene: PhysicsScene;
     private targetPos: vec3;
-    private pathFirst: vec2[] = new Array<vec2>();
-    private pathSecond: vec2[] = new Array<vec2>();
-    private enemies: Enemy[];
-    private separationRadius: number = 3.0; // Minimum distance between enemies
-    private player: Player;
-    private lightSource: PointLight;
-    private map: ProceduralMap;
+    private readonly pathFirst: vec2[] = new Array<vec2>();
+    private readonly pathSecond: vec2[] = new Array<vec2>();
+    private readonly enemies: Enemy[];
+    private readonly separationRadius: number = 3.0; // Minimum distance between enemies
+    private readonly player: Player;
+    private readonly lightSource: PointLight;
+    private readonly map: ProceduralMap;
     private animatedMesh: AnimatedGraphicsBundle;
     physicsObj: PhysicsObject;
-    private currentRotation: quat = quat.create();
-
+    private readonly currentRotation: quat = quat.create();
+    private readonly enemyStep: Howl;
     constructor(
         scene: Scene,
         physicsScene: PhysicsScene,
@@ -67,6 +64,17 @@ export default class Enemy {
 
         this.physicsObj = null;
         this.animatedMesh = null;
+
+        this.enemyStep = new Howl({
+            src: ["Assets/Audio/foot_down.wav"],
+            volume: 1.0,
+            rate: 1.0,
+            spatial: true,
+            pos: [this.targetPos[0], this.targetPos[1], this.targetPos[2]],
+            panningModel: "HRTF", // HRTF for realistic 3D audio
+            refDistance: 10,
+            rolloffFactor: 1,
+        });
 
         scene
             .addNewAnimatedMesh(
@@ -149,6 +157,17 @@ export default class Enemy {
         });
     }
 
+    playStepSound() {
+        if(vec3.len(this.physicsObj.velocity) > 0.01) {
+            if (!this.enemyStep.playing()) {
+                this.enemyStep.play();
+                this.enemyStep.pos(this.physicsObj.transform.position);
+            }
+        } else {
+            this.enemyStep.stop();
+        }
+    }
+
     move() {
         let towardsTargetVector = vec3.sub(
             vec3.create(),
@@ -169,6 +188,8 @@ export default class Enemy {
             currentDirection,
             3.0 * Math.max(distance, 10.0)
         );
+        // this.playSteIpSound();
+
     }
 
     smoothTurnTowardsTarget(targetDirection: vec3) {
@@ -264,7 +285,10 @@ export default class Enemy {
 
     preRenderingUpdate(dt: number) {
         if (this.animatedMesh != undefined) {
-            this.animatedMesh.animate(0, dt);
+            let keyframe = this.animatedMesh.animate(0, dt);
+            if (keyframe == 10 || keyframe == 28) {
+                this.playStepSound();
+            }
         }
     }
 
