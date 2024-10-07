@@ -94,10 +94,10 @@ export default class Player {
     }
 
   update(dt: number, camera: Camera, renderer: Renderer3D) {
-    if (Input.mouseRightClicked || Input.touches.length > 0) {
+    if (Input.mouseRightClicked || Input.mouseClicked || Input.touches.length > 0) {
       let clickX = 0;
       let clickY = 0;
-      if (Input.mouseRightClicked) {
+      if (Input.mouseRightClicked || Input.mouseClicked) {
         clickX = Input.mousePosition.x;
         clickY = Input.mousePosition.y;
       } else if (Input.touches.length > 0) {

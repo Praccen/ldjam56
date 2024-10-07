@@ -13,7 +13,6 @@ export default class GUI {
   gameGuiDiv: Div;
   fpsDisplay: TextObject2D;
   cameraFollowCheckbox: Checkbox;
-  volumetricLightingCheckbox: Checkbox;
   sensitivitySlider: Slider;
   densitySlider: Slider;
   ambientSlider: Slider;
@@ -44,23 +43,6 @@ export default class GUI {
     }
     if (cameraFollowCookie == "false") {
       this.cameraFollowCheckbox.getInputElement().checked = false;
-    }
-
-    // Add a checkbox for volumetric lighting
-    this.volumetricLightingCheckbox = guiRenderer.getNewCheckbox(
-      this.gameGuiDiv
-    );
-    this.volumetricLightingCheckbox.position[0] = 0.05;
-    this.volumetricLightingCheckbox.position[1] = 0.8;
-    this.volumetricLightingCheckbox.textString = "Volumetric Lighting ";
-    this.volumetricLightingCheckbox.getElement().style.zIndex = "2";
-    this.volumetricLightingCheckbox.getInputElement().checked = true;
-    const volumetricCookie = GetCookie("volumetric");
-    if (volumetricCookie == "true") {
-      this.volumetricLightingCheckbox.getInputElement().checked = true;
-    }
-    if (volumetricCookie == "false") {
-      this.volumetricLightingCheckbox.getInputElement().checked = false;
     }
 
     // Add a slider for sensitivity

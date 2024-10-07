@@ -350,9 +350,6 @@ function preRendereringUpdate(dt: number) {
   // Update fog density according to density slider
   renderer.setFogDensity(gui.densitySlider.getValue() * 0.005);
 
-  // Update usage of volumetric lighting based on checkbox
-  renderer.useVolumetric = gui.volumetricLightingCheckbox.getChecked();
-
   // Update ambient multiplier based on ambient slider
   scene.getDirectionalLight().ambientMultiplier =
     gui.ambientSlider.getValue() * 0.01;
@@ -443,7 +440,6 @@ window.addEventListener("beforeunload", function (e: BeforeUnloadEvent) {
   SetCookie("fogDensity", gui.densitySlider.getValue());
   SetCookie("sensitivity", gui.sensitivitySlider.getValue());
   SetCookie("ambientMultiplier", gui.ambientSlider.getValue());
-  SetCookie("volumetric", gui.volumetricLightingCheckbox.getChecked());
   SetCookie("cameraFollow", gui.cameraFollowCheckbox.getChecked());
 });
 

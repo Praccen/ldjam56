@@ -356,7 +356,7 @@ export default class Enemy {
                         vec3.add(
                             this.lightSource.position,
                             this.lanternMesh.transform.position,
-                            vec3.fromValues(0.0, -0.4, 0.0)
+                            vec3.fromValues(0.0, -0.55, 0.0)
                         );
                     }
                 }
