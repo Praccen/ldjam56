@@ -15,7 +15,7 @@ import {
 } from "praccen-web-engine";
 import ProceduralMap from "../Generators/Map/ProceduralMapGenerator.js";
 import Player from "./Player.js";
-import { Howler, Howl } from 'howler';
+import { Howler, Howl } from "howler";
 import { Factories } from "../Utils/Factories.js";
 
 export default class Enemy {
@@ -42,7 +42,6 @@ export default class Enemy {
         endPos: vec2,
         map: ProceduralMap,
         enemies: Enemy[],
-        reverse: boolean,
         lightSource: PointLight,
         player: Player,
         renderer: Renderer3D
@@ -60,11 +59,9 @@ export default class Enemy {
 
         vec3.set(this.lightSource.colour, 3, 0.5, 0.5);
 
-        if (reverse) {
-            this.pathFirst = this.map.findPath(endPos, startPos);
-        } else {
-            this.pathFirst = this.map.findPath(startPos, endPos);
-        }
+        console.log("Start: ", startPos);
+        console.log("End", endPos);
+        this.pathFirst = this.map.findPath(startPos, endPos);
         this.targetPos = this.map.getRoomCenterWorldPos(this.pathFirst[0]);
         this.pathSecond.unshift(this.pathFirst.shift());
 
@@ -89,7 +86,9 @@ export default class Enemy {
                 "CSS:rgb(0,0,0)"
             )
             .then((aMeshBundle) => {
-                aMeshBundle.emission = renderer.textureStore.getTexture("Assets/gltf/Rat/Image_3.png");
+                aMeshBundle.emission = renderer.textureStore.getTexture(
+                    "Assets/gltf/Rat/Image_3.png"
+                );
 
                 this.animatedMesh = aMeshBundle;
                 vec3.copy(aMeshBundle.transform.position, this.targetPos);
@@ -102,11 +101,21 @@ export default class Enemy {
                 this.physicsObj.isStatic = false;
                 this.physicsObj.isImmovable = false;
                 this.physicsObj.frictionCoefficient = 1.0;
-                this.physicsObj.boundingBox.setMinAndMaxVectors(vec3.fromValues(-1.0, 0.0, -1.0), vec3.fromValues(1.0, 3.0, 1.0));
+                this.physicsObj.boundingBox.setMinAndMaxVectors(
+                    vec3.fromValues(-1.0, 0.0, -1.0),
+                    vec3.fromValues(1.0, 3.0, 1.0)
+                );
             });
 
         this.lanternMesh = null;
-        Factories.createMesh(scene, "Assets/objs/Lantern.obj", vec3.fromValues(15.0, 2.0, 12.0), vec3.fromValues(1.0, 1.0, 1.0), "CSS:rgb(150,0,0)", "CSS:rgb(0,0,0)").then((mesh) => {
+        Factories.createMesh(
+            scene,
+            "Assets/objs/Lantern.obj",
+            vec3.fromValues(15.0, 2.0, 12.0),
+            vec3.fromValues(1.0, 1.0, 1.0),
+            "CSS:rgb(150,0,0)",
+            "CSS:rgb(0,0,0)"
+        ).then((mesh) => {
             this.lanternMesh = mesh;
         });
     }
@@ -196,7 +205,6 @@ export default class Enemy {
             3.0 * Math.max(distance, 10.0)
         );
         // this.playSteIpSound();
-
     }
 
     smoothTurnTowardsTarget(targetDirection: vec3) {
@@ -245,7 +253,7 @@ export default class Enemy {
 
     lookForPlayer(dt: number) {
         this.time += dt;
-        if ((this.time % 2) < 0.5) {
+        if (this.time % 2 < 0.5) {
             if (this.player.physicsObj != undefined) {
                 const distance = vec3.distance(
                     this.physicsObj.transform.position,
@@ -278,9 +286,10 @@ export default class Enemy {
                             ),
                             playerDir
                         );
-                        let hitObject = this.map.wallsPhysicsScene.doRayCast(ray, [
-                            this.physicsObj,
-                        ]).object;
+                        let hitObject = this.map.wallsPhysicsScene.doRayCast(
+                            ray,
+                            [this.physicsObj]
+                        ).object;
                         if (hitObject == this.player.physicsObj) {
                             console.log("hit player");
                         }
@@ -292,29 +301,63 @@ export default class Enemy {
 
     preRenderingUpdate(dt: number) {
         if (this.animatedMesh != undefined) {
-            if(vec3.len(this.physicsObj.velocity) > 1.0) {
+            if (vec3.len(this.physicsObj.velocity) > 1.0) {
                 let keyframe = this.animatedMesh.animate(0, dt);
                 if (keyframe == 10 || keyframe == 28) {
                     this.playStepSound();
                 }
 
-                if (this.lanternMesh != undefined && this.animatedMesh.graphicsObjectAndGltfObject.gltfObject != undefined) {
-                    let handIndex = this.animatedMesh.graphicsObjectAndGltfObject.gltfObject.nodeNameToIndexMap.get("Rat:LeftHand");
+                if (
+                    this.lanternMesh != undefined &&
+                    this.animatedMesh.graphicsObjectAndGltfObject.gltfObject !=
+                        undefined
+                ) {
+                    let handIndex =
+                        this.animatedMesh.graphicsObjectAndGltfObject.gltfObject.nodeNameToIndexMap.get(
+                            "Rat:LeftHand"
+                        );
                     if (handIndex != undefined) {
-                        let node = this.animatedMesh.graphicsObjectAndGltfObject.gltfObject.nodes[handIndex];
-                        
+                        let node =
+                            this.animatedMesh.graphicsObjectAndGltfObject
+                                .gltfObject.nodes[handIndex];
+
                         let mat = mat4.create();
 
-                        mat4.translate(mat, mat, vec3.fromValues(1.4, 2.2, -2.2));
+                        mat4.translate(
+                            mat,
+                            mat,
+                            vec3.fromValues(1.4, 2.2, -2.2)
+                        );
                         mat4.scale(mat, mat, vec3.fromValues(0.5, 0.5, 0.5));
                         mat4.mul(mat, node.transform.matrix, mat);
                         mat4.mul(mat, this.animatedMesh.transform.matrix, mat);
 
-                        this.lanternMesh.transform.position = vec3.transformMat4(vec3.create(), vec3.create(), mat);
-                        vec3.set(this.lanternMesh.transform.scale, 0.4, 0.4, 0.4);
-                        quat.copy(this.lanternMesh.transform.rotation, this.animatedMesh.transform.rotation);
-                        quat.rotateY(this.lanternMesh.transform.rotation, this.lanternMesh.transform.rotation, Math.PI * 0.5);
-                        vec3.add(this.lightSource.position, this.lanternMesh.transform.position, vec3.fromValues(0.0, -0.4, 0.0));
+                        this.lanternMesh.transform.position =
+                            vec3.transformMat4(
+                                vec3.create(),
+                                vec3.create(),
+                                mat
+                            );
+                        vec3.set(
+                            this.lanternMesh.transform.scale,
+                            0.4,
+                            0.4,
+                            0.4
+                        );
+                        quat.copy(
+                            this.lanternMesh.transform.rotation,
+                            this.animatedMesh.transform.rotation
+                        );
+                        quat.rotateY(
+                            this.lanternMesh.transform.rotation,
+                            this.lanternMesh.transform.rotation,
+                            Math.PI * 0.5
+                        );
+                        vec3.add(
+                            this.lightSource.position,
+                            this.lanternMesh.transform.position,
+                            vec3.fromValues(0.0, -0.4, 0.0)
+                        );
                     }
                 }
             }

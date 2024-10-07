@@ -16,7 +16,8 @@ import Inventory from "./GUI/Inventory.js";
 import { ItemList } from "./Objects/Items/ItemSpecs.js";
 import ItemHandler from "./Objects/Items/ItemHandler.js";
 import Enemy from "./Objects/Enemy.js";
-import { Howler, Howl } from 'howler';
+import { mat4 } from "gl-matrix";
+import { Howler, Howl } from "howler";
 import Cheese from "./Objects/Cheese.js";
 import Menu from "./GUI/Menu.js";
 
@@ -66,7 +67,7 @@ guiRenderer.domElement.className = "guiContainer";
 // Create a scene. It will automatically have a directional light, so let's set the ambient multiplier for it.
 let scene = new Scene(renderer);
 scene.getDirectionalLight().ambientMultiplier = 0.0;
-vec3.set(scene.getDirectionalLight().colour, 0.3216,0.7412,0.5922);
+vec3.set(scene.getDirectionalLight().colour, 0.3216, 0.7412, 0.5922);
 vec3.set(scene.getDirectionalLight().direction, 0.001, 1.0, 0.0);
 
 scene.directionalLight.shadowCameraDistance = 100;
@@ -108,11 +109,11 @@ let gameTimer: number = 0.0;
 Howler.pos(0, 0, 0);
 
 let themeMusic = new Howl({
-    src: ["Assets/Audio/Mysterious Forest Music.mp3"],
-    volume: 0.1,
-    rate: 1.0,
-    loop: true,
-    spatial: true,
+  src: ["Assets/Audio/Mysterious Forest Music.mp3"],
+  volume: 0.1,
+  rate: 1.0,
+  loop: true,
+  spatial: true,
 });
 
 themeMusic.play();
@@ -121,7 +122,13 @@ let map = new ProceduralMap(scene, physicsScene);
 let playerSpawnRoom = map.getPlayerSpawnRoom();
 let goalRoom = map.getRoomCenterWorldPos(map.getGoalRoom());
 let playerPointLight = scene.addNewPointLight();
-let player = new Player(scene, physicsScene, map.wallsPhysicsScene, playerSpawnRoom, playerPointLight);
+let player = new Player(
+  scene,
+  physicsScene,
+  map.wallsPhysicsScene,
+  playerSpawnRoom,
+  playerPointLight
+);
 let cheesePointLight = scene.addNewPointLight();
 let cheese = new Cheese(scene, goalRoom, map, cheesePointLight);
 let enemies = new Array<Enemy>();
@@ -135,7 +142,6 @@ for (let i = 0; i < map.getNumEnemies(); i++) {
     path.end,
     map,
     enemies,
-    i % 2 == 0,
     pointLight,
     player,
     renderer
@@ -150,7 +156,6 @@ let itemHandler = new ItemHandler(guiRenderer, gui, inventory);
 
 let menu = new Menu(guiRenderer, renderer);
 
-
 /**
  * Our update function, this will run every frame, and is responsible for moving the camera based on input.
  * This is where game logic would go if this was a complete game
@@ -161,7 +166,7 @@ function update(dt: number) {
     menu.update(dt);
     return;
   }
-  
+
   if (Input.keys["I"]) {
     if (!iWasPressed) {
       inventory.toggle();
@@ -199,11 +204,9 @@ function update(dt: number) {
 
     player.update(dt, camera, renderer);
 
-
     for (let enemy of enemies) {
       enemy.update(dt, renderer);
     }
-
 
     // Update physics
     physicsScene.update(dt);
@@ -211,15 +214,20 @@ function update(dt: number) {
 
     if (player.physicsObj != undefined) {
       // Update sound from player
-      Howler.pos(player.physicsObj.transform.position[0], player.physicsObj.transform.position[1], player.physicsObj.transform.position[2]);
-      if (vec3.dist(player.physicsObj.transform.position, goalRoom ) < 2.0) {
+      Howler.pos(
+        player.physicsObj.transform.position[0],
+        player.physicsObj.transform.position[1],
+        player.physicsObj.transform.position[2]
+      );
+      if (vec3.dist(player.physicsObj.transform.position, goalRoom) < 2.0) {
         // TODO LOAD NEXT LEVEL
         console.log("WIN");
       }
 
-      if (vec3.dist(player.physicsObj.transform.position, cheese.position ) < 15.0) {
+      if (
+        vec3.dist(player.physicsObj.transform.position, cheese.position) < 15.0
+      ) {
         cheese.playSound();
-
       }
 
       map.updateFocusRoom(
@@ -481,8 +489,7 @@ function animate() {
 
   if (menu.enabled) {
     menu.draw();
-  }
-  else {
+  } else {
     if (saveScreenshot) {
       renderer.render(scene, camera, true, "captureScreen.png");
       saveScreenshot = false;

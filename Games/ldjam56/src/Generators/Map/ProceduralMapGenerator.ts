@@ -193,8 +193,7 @@ const physicsObjectScales = [
   vec3.fromValues(2.0, 5.0, 2.0), // Pillar / top left
   vec3.fromValues(9.0, 5.0, 2.0), // Top wall
   vec3.fromValues(2.0, 5.0, 9.0), // Left wall
-
-]
+];
 
 const roomSize = 10.0;
 
@@ -230,30 +229,29 @@ export default class ProceduralMap {
     // Starts top left and goes clockwise
     this.physicsObjects = new Array<ENGINE.PhysicsObject>();
     let scale = [
-        vec3.fromValues(2.0, 5.0, 2.0),
-        vec3.fromValues(9.0, 5.0, 2.0),
-        vec3.fromValues(2.0, 5.0, 2.0),
-        vec3.fromValues(2.0, 5.0, 9.0),
-        vec3.fromValues(2.0, 5.0, 2.0),
-        vec3.fromValues(9.0, 5.0, 2.0),
-        vec3.fromValues(2.0, 5.0, 2.0),
-        vec3.fromValues(2.0, 5.0, 9.0),
+      vec3.fromValues(2.0, 5.0, 2.0),
+      vec3.fromValues(9.0, 5.0, 2.0),
+      vec3.fromValues(2.0, 5.0, 2.0),
+      vec3.fromValues(2.0, 5.0, 9.0),
+      vec3.fromValues(2.0, 5.0, 2.0),
+      vec3.fromValues(9.0, 5.0, 2.0),
+      vec3.fromValues(2.0, 5.0, 2.0),
+      vec3.fromValues(2.0, 5.0, 9.0),
     ];
-    
 
     // let debugBoxes = new Array<ENGINE.GraphicsBundle>(8);
 
     for (let i = 0; i < 8; i++) {
-        this.physicsObjects.push(this.physicsScene.addNewPhysicsObject());
-        this.physicsObjects[i].transform.position[1] = -50; // Move them down far below the ground as a start
-        this.physicsObjects[i].transform.scale = scale[i];
-        this.physicsObjects[i].isStatic = true;
-        this.physicsObjects[i].frictionCoefficient = 0.0;
+      this.physicsObjects.push(this.physicsScene.addNewPhysicsObject());
+      this.physicsObjects[i].transform.position[1] = -50; // Move them down far below the ground as a start
+      this.physicsObjects[i].transform.scale = scale[i];
+      this.physicsObjects[i].isStatic = true;
+      this.physicsObjects[i].frictionCoefficient = 0.0;
 
-        // scene.addNewMesh("Assets/objs/cube.obj", "CSS:rgb(255, 0, 0)", "CSS:rgb(0, 0, 0)").then((bundle) => {
-        //     debugBoxes[i] = bundle;
-        //     bundle.transform = this.physicsObjects[i].transform;
-        // });
+      // scene.addNewMesh("Assets/objs/cube.obj", "CSS:rgb(255, 0, 0)", "CSS:rgb(0, 0, 0)").then((bundle) => {
+      //     debugBoxes[i] = bundle;
+      //     bundle.transform = this.physicsObjects[i].transform;
+      // });
     }
 
     this.exploredAsciiMap = "";
@@ -263,12 +261,13 @@ export default class ProceduralMap {
     this.focusRoom = vec2.fromValues(-1.0, -1.0);
 
     const mapLayout = `
-A2222B
-225222
-224422
-224422
-222262
-B2222A
+A11111c111111B
+21101110111012
+21441100444112
+20500000004416
+20114111114012
+21111001111222
+b22211C112222a
 `;
 
     // `
@@ -343,46 +342,41 @@ B2222A
       for (let columnNr = 0; columnNr < row.length; columnNr++) {
         if (row[columnNr] == "0") {
           noGoRooms.push([columnNr, rowNr]);
-        }
-        else if (row[columnNr] == "2") {
+        } else if (row[columnNr] == "2") {
           mustGoRooms.push([columnNr, rowNr]);
-        }
-        else if (row[columnNr] == "3") {
+        } else if (row[columnNr] == "3") {
           noGoRooms.push([columnNr, rowNr]);
           connectionRooms.push([columnNr, rowNr]);
-        }
-        else if (row[columnNr] == "4") {
+        } else if (row[columnNr] == "4") {
           mustGoRooms.push([columnNr, rowNr]);
           connectionRooms.push([columnNr, rowNr]);
-        }
-        else if (row[columnNr] == "5") {
+        } else if (row[columnNr] == "5") {
           mustGoRooms.push([columnNr, rowNr]);
           connectionRooms.push([columnNr, rowNr]);
           vec2.set(this.playerSpawnRoom, columnNr, rowNr);
-        }
-        else if (row[columnNr] == "6") {
+        } else if (row[columnNr] == "6") {
           mustGoRooms.push([columnNr, rowNr]);
           connectionRooms.push([columnNr, rowNr]);
           vec2.set(this.goalRoom, columnNr * 2 + 1, rowNr * 2 + 1);
-        }
-        else if (Number(row[columnNr]) > 6 || isNaN(+row[columnNr])) {
+        } else if (isNaN(+row[columnNr])) {
           mustGoRooms.push([columnNr, rowNr]);
           let num = row[columnNr];
-          if (!this.enemyPaths.has(num)) {
-            this.enemyNumbers.push(num);
-            this.enemyPaths.set(num, new Path());
-            this.enemyPaths.get(num).start = vec2.fromValues(
-              columnNr * 2 + 1,
-              rowNr * 2 + 1
-            );
-          } else if (this.enemyPaths.get(num).end == null) {
-            this.enemyPaths.get(num).end = vec2.fromValues(
-              columnNr * 2 + 1,
-              rowNr * 2 + 1
-            );
-          } else {
-            throw "More than two endpoints defined for " + String(num);
+          let pos = vec2.fromValues(columnNr * 2 + 1, rowNr * 2 + 1);
+
+          if (!this.enemyNumbers.includes(num.toUpperCase())) {
+            this.enemyNumbers.push(num.toUpperCase());
+            this.enemyPaths.set(num.toUpperCase(), new Path());
+            console.log("Adding: ", num.toUpperCase());
           }
+          if (num == num.toUpperCase()) {
+            console.log("Starting: ", num.toUpperCase());
+            this.enemyPaths.get(num.toUpperCase()).start = pos;
+          } else {
+            console.log("Ending: ", num.toUpperCase());
+            this.enemyPaths.get(num.toUpperCase()).end = pos;
+          }
+
+          console.log(pos);
         }
       }
       rowNr++;
@@ -602,8 +596,9 @@ B2222A
               );
               phyTrans.scale = vec3.clone(physicsObjectScales[1]);
 
-              let physObj = this.wallsPhysicsScene.addNewPhysicsObject(phyTrans);
-              physObj.isStatic = true
+              let physObj =
+                this.wallsPhysicsScene.addNewPhysicsObject(phyTrans);
+              physObj.isStatic = true;
               physObj.frictionCoefficient = 0.0;
             }
 
@@ -669,8 +664,9 @@ B2222A
               );
               phyTrans.scale = vec3.clone(physicsObjectScales[2]);
 
-              let physObj = this.wallsPhysicsScene.addNewPhysicsObject(phyTrans);
-              physObj.isStatic = true
+              let physObj =
+                this.wallsPhysicsScene.addNewPhysicsObject(phyTrans);
+              physObj.isStatic = true;
               physObj.frictionCoefficient = 0.0;
             }
 
@@ -683,9 +679,7 @@ B2222A
                 wallPieceModels[this.map[column * 2][row * 2]].paths;
               const rots = wallPieceModels[this.map[column * 2][row * 2]].rot;
               const path = paths[Math.floor(Math.random() * paths.length)];
-              let mesh = this.instancedMeshes.get(
-                path
-              );
+              let mesh = this.instancedMeshes.get(path);
               vec3.set(
                 mesh.transform.position,
                 5.0 + 10 * column + -5.0,
@@ -712,8 +706,11 @@ B2222A
               );
               mesh.modelMatrices.push(matrix);
 
-              // Only add a physics object for crossings if it's not a end piece 
-              if (this.map[column * 2][row * 2] % 16 < 12 || this.map[column * 2][row * 2] % 16 > 15) {
+              // Only add a physics object for crossings if it's not a end piece
+              if (
+                this.map[column * 2][row * 2] % 16 < 12 ||
+                this.map[column * 2][row * 2] % 16 > 15
+              ) {
                 let phyTrans = new ENGINE.Transform();
                 vec3.set(
                   phyTrans.position,
@@ -723,7 +720,8 @@ B2222A
                 );
                 phyTrans.scale = vec3.clone(physicsObjectScales[0]);
 
-                let physObj = this.wallsPhysicsScene.addNewPhysicsObject(phyTrans);
+                let physObj =
+                  this.wallsPhysicsScene.addNewPhysicsObject(phyTrans);
                 physObj.isStatic = true;
                 physObj.frictionCoefficient = 0.0;
               }
@@ -735,52 +733,123 @@ B2222A
 
   updateFocusRoom(characterPosition: vec2) {
     // Calculate room from characterPosition
-    let room =  vec2.floor(vec2.create(), vec2.scale(vec2.create(), characterPosition, 1.0 / roomSize));
-    if (room[0] < 0 || room[0] >= this.map.length || room[1] < 0 || room[1] >= this.map[0].length) {
-        return;
+    let room = vec2.floor(
+      vec2.create(),
+      vec2.scale(vec2.create(), characterPosition, 1.0 / roomSize)
+    );
+    if (
+      room[0] < 0 ||
+      room[0] >= this.map.length ||
+      room[1] < 0 ||
+      room[1] >= this.map[0].length
+    ) {
+      return;
     }
 
     // If it's not the same as the current focus room, update the physics objects and update the focus room
     if (!vec2.equals(room, this.focusRoom)) {
-        // Start with the corners
-        if (this.map[room[0] * 2][room[1] * 2] > 0) {
-            if (!(this.map[room[0] * 2][room[1] * 2] % 16 >= 12 && this.map[room[0] * 2][room[1] * 2] % 16 <= 15)) {
-                vec3.set(this.physicsObjects[0].transform.position, 5.0 + room[0] * roomSize - 5.0, 0.0, 5.0 + room[1] * roomSize - 5.0);
-            }
+      // Start with the corners
+      if (this.map[room[0] * 2][room[1] * 2] > 0) {
+        if (
+          !(
+            this.map[room[0] * 2][room[1] * 2] % 16 >= 12 &&
+            this.map[room[0] * 2][room[1] * 2] % 16 <= 15
+          )
+        ) {
+          vec3.set(
+            this.physicsObjects[0].transform.position,
+            5.0 + room[0] * roomSize - 5.0,
+            0.0,
+            5.0 + room[1] * roomSize - 5.0
+          );
         }
-        if (this.map[room[0] * 2 + 2][room[1] * 2] > 0) {
-            if (!(this.map[room[0] * 2 + 2][room[1] * 2] % 16 >= 12 && this.map[room[0] * 2 + 2][room[1] * 2] % 16 <= 15)) {
-                vec3.set(this.physicsObjects[2].transform.position, 5.0 + room[0] * roomSize + 5.0, 0.0, 5.0 + room[1] * roomSize - 5.0);
-            }
+      }
+      if (this.map[room[0] * 2 + 2][room[1] * 2] > 0) {
+        if (
+          !(
+            this.map[room[0] * 2 + 2][room[1] * 2] % 16 >= 12 &&
+            this.map[room[0] * 2 + 2][room[1] * 2] % 16 <= 15
+          )
+        ) {
+          vec3.set(
+            this.physicsObjects[2].transform.position,
+            5.0 + room[0] * roomSize + 5.0,
+            0.0,
+            5.0 + room[1] * roomSize - 5.0
+          );
         }
-        if (this.map[room[0] * 2 + 2][room[1] * 2 + 2] > 0) {
-            if (!(this.map[room[0] * 2 + 2][room[1] * 2 + 2] % 16 >= 12 && this.map[room[0] * 2 + 2][room[1] * 2 + 2] % 16 <= 15)) {
-                vec3.set(this.physicsObjects[4].transform.position, 5.0 + room[0] * roomSize + 5.0, 0.0, 5.0 + room[1] * roomSize + 5.0);
-            }
+      }
+      if (this.map[room[0] * 2 + 2][room[1] * 2 + 2] > 0) {
+        if (
+          !(
+            this.map[room[0] * 2 + 2][room[1] * 2 + 2] % 16 >= 12 &&
+            this.map[room[0] * 2 + 2][room[1] * 2 + 2] % 16 <= 15
+          )
+        ) {
+          vec3.set(
+            this.physicsObjects[4].transform.position,
+            5.0 + room[0] * roomSize + 5.0,
+            0.0,
+            5.0 + room[1] * roomSize + 5.0
+          );
         }
-        if (this.map[room[0] * 2][room[1] * 2 + 2] > 0) {
-            if (!(this.map[room[0] * 2][room[1] * 2 + 2] % 16 >= 12 && this.map[room[0] * 2][room[1] * 2 + 2] % 16 <= 15)) {
-                vec3.set(this.physicsObjects[6].transform.position, 5.0 + room[0] * roomSize - 5.0, 0.0, 5.0 + room[1] * roomSize + 5.0);
-            }
+      }
+      if (this.map[room[0] * 2][room[1] * 2 + 2] > 0) {
+        if (
+          !(
+            this.map[room[0] * 2][room[1] * 2 + 2] % 16 >= 12 &&
+            this.map[room[0] * 2][room[1] * 2 + 2] % 16 <= 15
+          )
+        ) {
+          vec3.set(
+            this.physicsObjects[6].transform.position,
+            5.0 + room[0] * roomSize - 5.0,
+            0.0,
+            5.0 + room[1] * roomSize + 5.0
+          );
         }
+      }
 
-        // Then do the walls
-        if (this.map[room[0] * 2 + 1][room[1] * 2] > 0) {
-            vec3.set(this.physicsObjects[1].transform.position, 5.0 + room[0] * roomSize, 0.0, 5.0 + room[1] * roomSize - 5.0);
-        }
-        if (this.map[room[0] * 2 + 2][room[1] * 2 + 1] > 0) {
-            vec3.set(this.physicsObjects[3].transform.position, 5.0 + room[0] * roomSize + 5.0, 0.0, 5.0 + room[1] * roomSize);
-        }
-        if (this.map[room[0] * 2 + 1][room[1] * 2 + 2] > 0) {
-            vec3.set(this.physicsObjects[5].transform.position, 5.0 + room[0] * roomSize, 0.0, 5.0 + room[1] * roomSize + 5.0);
-        }
-        if (this.map[room[0] * 2][room[1] * 2 + 1] > 0) {
-            vec3.set(this.physicsObjects[7].transform.position, 5.0 + room[0] * roomSize - 5.0, 0.0, 5.0 + room[1] * roomSize);
-        }
+      // Then do the walls
+      if (this.map[room[0] * 2 + 1][room[1] * 2] > 0) {
+        vec3.set(
+          this.physicsObjects[1].transform.position,
+          5.0 + room[0] * roomSize,
+          0.0,
+          5.0 + room[1] * roomSize - 5.0
+        );
+      }
+      if (this.map[room[0] * 2 + 2][room[1] * 2 + 1] > 0) {
+        vec3.set(
+          this.physicsObjects[3].transform.position,
+          5.0 + room[0] * roomSize + 5.0,
+          0.0,
+          5.0 + room[1] * roomSize
+        );
+      }
+      if (this.map[room[0] * 2 + 1][room[1] * 2 + 2] > 0) {
+        vec3.set(
+          this.physicsObjects[5].transform.position,
+          5.0 + room[0] * roomSize,
+          0.0,
+          5.0 + room[1] * roomSize + 5.0
+        );
+      }
+      if (this.map[room[0] * 2][room[1] * 2 + 1] > 0) {
+        vec3.set(
+          this.physicsObjects[7].transform.position,
+          5.0 + room[0] * roomSize - 5.0,
+          0.0,
+          5.0 + room[1] * roomSize
+        );
+      }
 
-        this.focusRoom = room;
-        this.visitedRooms.add(room[0] + ";" + room[1]);
-        this.exploredAsciiMap = LabyrinthGenerator.getAsciiMap(this.map, this.visitedRooms);
+      this.focusRoom = room;
+      this.visitedRooms.add(room[0] + ";" + room[1]);
+      this.exploredAsciiMap = LabyrinthGenerator.getAsciiMap(
+        this.map,
+        this.visitedRooms
+      );
     }
   }
 
