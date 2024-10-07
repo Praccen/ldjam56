@@ -597,7 +597,7 @@ export default class Inventory {
 
   preRenderingUpdate(dt: number) {}
 
-  draw(dt: number) {
+  draw() {
     this.inventoryRenderer.render(this.inventoryScene, this.inventoryCamera);
   }
 }

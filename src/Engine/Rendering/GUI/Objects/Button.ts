@@ -7,7 +7,7 @@ export default class Button extends GuiObject {
   textSize: number;
 
   private inputNode: HTMLButtonElement;
-  private onClickFunction: any;
+  private onClickFunction: (this: HTMLButtonElement, ev: MouseEvent) => any;
 
   constructor(domElement: HTMLDivElement, parentDiv?: Div) {
     super(domElement, parentDiv);
@@ -30,7 +30,7 @@ export default class Button extends GuiObject {
     return this.inputNode;
   }
 
-  onClick(fn: any) {
+  onClick(fn: (this: HTMLButtonElement, ev: MouseEvent) => any) {
     this.onClickFunction = fn;
     this.inputNode.addEventListener("click", this.onClickFunction);
   }

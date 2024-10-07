@@ -6,7 +6,6 @@ import {
   Scene,
   Camera,
   PhysicsScene,
-  MousePicking,
 } from "praccen-web-engine";
 import { Input } from "./Input.js";
 import { GetCookie, SetCookie } from "./Utils/WebUtils.js";
@@ -17,9 +16,9 @@ import Inventory from "./GUI/Inventory.js";
 import { ItemList } from "./Objects/Items/ItemSpecs.js";
 import ItemHandler from "./Objects/Items/ItemHandler.js";
 import Enemy from "./Objects/Enemy.js";
-import { mat4 } from "gl-matrix";
 import { Howler, Howl } from 'howler';
 import Cheese from "./Objects/Cheese.js";
+import Menu from "./GUI/Menu.js";
 
 /* ---- Elevator pitch ----
 A rougelite top down 3D procedurally generated dungeon crawler wher you pull a cart with a fire. 
@@ -149,6 +148,7 @@ inventory.toggle();
 
 let itemHandler = new ItemHandler(guiRenderer, gui, inventory);
 
+let menu = new Menu(guiRenderer, renderer);
 
 
 /**
@@ -157,6 +157,11 @@ let itemHandler = new ItemHandler(guiRenderer, gui, inventory);
  * @param dt - time elapsed since last frame.
  */
 function update(dt: number) {
+  if (menu.enabled) {
+    menu.update(dt);
+    return;
+  }
+  
   if (Input.keys["I"]) {
     if (!iWasPressed) {
       inventory.toggle();
@@ -234,6 +239,14 @@ function update(dt: number) {
  * @param dt Time since last render call
  */
 function preRendereringUpdate(dt: number) {
+  if (menu.enabled) {
+    menu.preRenderingUpdate(dt);
+    gui.gameGuiDiv.setHidden(true);
+    return;
+  }
+
+  gui.gameGuiDiv.setHidden(false);
+
   if (gui.cameraFollowCheckbox.getChecked() && player.physicsObj != undefined) {
     let offsetVec = vec3.fromValues(0.0, 15.0, 6.0);
     let x = player.physicsObj.transform.position[0];
@@ -290,9 +303,7 @@ function preRendereringUpdate(dt: number) {
       Input.mouseClicked &&
       gui.sensitivitySlider.getInputElement() != document.activeElement &&
       gui.densitySlider.getInputElement() != document.activeElement &&
-      gui.ambientSlider.getInputElement() != document.activeElement &&
-      gui.volumetricRenderScaleSlider.getInputElement() !=
-        document.activeElement
+      gui.ambientSlider.getInputElement() != document.activeElement
     ) {
       // Make sure the user is not changing a slider
       pitch -= mouseDiff[1] * sensitivity;
@@ -327,12 +338,6 @@ function preRendereringUpdate(dt: number) {
 
   // Update sensitivity according to sensitivity slider
   sensitivity = gui.sensitivitySlider.getValue() * 0.04;
-
-  // Update blur of volumetric pass based on blur checkbox
-  renderer.setFogBlur(gui.volumetricBlurCheckbox.getChecked());
-
-  // Update fog render scale according to render scale slider
-  renderer.setFogRenderScale(gui.volumetricRenderScaleSlider.getValue() * 0.01);
 
   // Update fog density according to density slider
   renderer.setFogDensity(gui.densitySlider.getValue() * 0.005);
@@ -427,11 +432,6 @@ window.addEventListener("beforeunload", function (e: BeforeUnloadEvent) {
       camera.getPosition()[2]
   );
   SetCookie("camDir", pitch + ":" + jaw);
-  SetCookie(
-    "volumetricRenderScale",
-    gui.volumetricRenderScaleSlider.getValue()
-  );
-  SetCookie("volumetricBlur", gui.volumetricBlurCheckbox.getChecked());
   SetCookie("fogDensity", gui.densitySlider.getValue());
   SetCookie("sensitivity", gui.sensitivitySlider.getValue());
   SetCookie("ambientMultiplier", gui.ambientSlider.getValue());
@@ -479,14 +479,19 @@ function animate() {
 
   preRendereringUpdate(dt);
 
-  if (saveScreenshot) {
-    renderer.render(scene, camera, true, "captureScreen.png");
-    saveScreenshot = false;
-  } else {
-    renderer.render(scene, camera);
+  if (menu.enabled) {
+    menu.draw();
   }
+  else {
+    if (saveScreenshot) {
+      renderer.render(scene, camera, true, "captureScreen.png");
+      saveScreenshot = false;
+    } else {
+      renderer.render(scene, camera);
+    }
 
-  inventory.draw(dt);
+    inventory.draw();
+  }
 
   guiRenderer.draw(camera);
 }

@@ -15,8 +15,6 @@ export default class GUI {
   cameraFollowCheckbox: Checkbox;
   volumetricLightingCheckbox: Checkbox;
   sensitivitySlider: Slider;
-  volumetricRenderScaleSlider: Slider;
-  volumetricBlurCheckbox: Checkbox;
   densitySlider: Slider;
   ambientSlider: Slider;
   mapDisplay: TextObject3D;
@@ -63,37 +61,6 @@ export default class GUI {
     }
     if (volumetricCookie == "false") {
       this.volumetricLightingCheckbox.getInputElement().checked = false;
-    }
-
-    // Add a slider for volumetric render scale
-    this.volumetricRenderScaleSlider = guiRenderer.getNewSlider(
-      this.gameGuiDiv
-    );
-    this.volumetricRenderScaleSlider.position[0] = 0.05;
-    this.volumetricRenderScaleSlider.position[1] = 0.05;
-    this.volumetricRenderScaleSlider.textString = "Volumetric render scale ";
-    this.volumetricRenderScaleSlider.getElement().style.zIndex = "2";
-    this.volumetricRenderScaleSlider.getInputElement().min = "1";
-    this.volumetricRenderScaleSlider.getInputElement().max = "100";
-    const volumetricRenderScaleCookie = GetCookie("volumetricRenderScale");
-    if (volumetricRenderScaleCookie != "") {
-      this.volumetricRenderScaleSlider.getInputElement().value =
-        volumetricRenderScaleCookie;
-    }
-
-    // Add a checkbox for volumetric blur
-    this.volumetricBlurCheckbox = guiRenderer.getNewCheckbox(this.gameGuiDiv);
-    this.volumetricBlurCheckbox.position[0] = 0.05;
-    this.volumetricBlurCheckbox.position[1] = 0.1;
-    this.volumetricBlurCheckbox.textString = "Volumetric blur";
-    this.volumetricBlurCheckbox.getElement().style.zIndex = "2";
-    this.volumetricBlurCheckbox.getInputElement().checked = true;
-    const volumetricBlurCookie = GetCookie("volumetricBlur");
-    if (volumetricBlurCookie == "true") {
-      this.volumetricBlurCheckbox.getInputElement().checked = true;
-    }
-    if (volumetricBlurCookie == "false") {
-      this.volumetricBlurCheckbox.getInputElement().checked = false;
     }
 
     // Add a slider for sensitivity

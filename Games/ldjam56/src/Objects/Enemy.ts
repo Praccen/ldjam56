@@ -309,8 +309,6 @@ export default class Enemy {
                         mat4.scale(mat, mat, vec3.fromValues(0.5, 0.5, 0.5));
                         mat4.mul(mat, node.transform.matrix, mat);
                         mat4.mul(mat, this.animatedMesh.transform.matrix, mat);
-                        // mat4.rotateY(mat, mat, -Math.PI * 0.5);
-                        // mat4.rotateZ(mat, mat, -Math.PI * 0.5);
 
                         this.lanternMesh.transform.position = vec3.transformMat4(vec3.create(), vec3.create(), mat);
                         vec3.set(this.lanternMesh.transform.scale, 0.4, 0.4, 0.4);

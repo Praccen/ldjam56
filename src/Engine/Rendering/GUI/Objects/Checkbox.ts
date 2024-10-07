@@ -8,6 +8,8 @@ export default class Checkbox extends GuiObject {
 
   private inputNode: HTMLInputElement;
   private label: HTMLLabelElement;
+  
+  private onChangeFunction: (this: HTMLInputElement, ev: MouseEvent) => any;
 
   constructor(domElement: HTMLDivElement, parentDiv?: Div) {
     super(domElement, parentDiv);
@@ -44,6 +46,18 @@ export default class Checkbox extends GuiObject {
 
   getChecked(): boolean {
     return this.inputNode.checked;
+  }
+
+  onChange(fn: (this: HTMLInputElement, ev: MouseEvent) => any) {
+    this.onChangeFunction = fn;
+    this.inputNode.addEventListener("change", this.onChangeFunction);
+  }
+
+  remove(): void {
+    if (this.onChangeFunction != undefined) {
+      this.inputNode.removeEventListener("change", this.onChangeFunction);
+    }
+    super.remove();
   }
 
   draw() {
