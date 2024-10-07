@@ -12,6 +12,9 @@ import {
 } from "praccen-web-engine";
 import { PointLight } from "../../../../dist/Engine.js";
 import { Input } from "../Input.js";
+import { Howler, Howl } from 'howler';
+
+
 
 export default class Player {
   private physicsScene: PhysicsScene;
@@ -19,6 +22,7 @@ export default class Player {
   private animatedMesh: AnimatedGraphicsBundle;
   physicsObj: PhysicsObject;
   private lightSource: PointLight;
+  private readonly step: Howl;
 
   constructor(
     scene: Scene,
@@ -43,6 +47,11 @@ export default class Player {
 
     this.physicsObj = null;
     this.animatedMesh = null;
+    this.step = new Howl({
+        src: ["Assets/Audio/mouse_step.wav"],
+        volume: 10.0,
+        rate: 1.0,
+    });
 
     scene
       .addNewAnimatedMesh(
@@ -74,6 +83,12 @@ export default class Player {
       );
     }
   }
+
+    playStepSound() {
+        if (!this.step.playing()) {
+            this.step.play();
+        }
+    }
 
   update(dt: number, camera: Camera, renderer: Renderer3D) {
     if (Input.mouseRightClicked || Input.touches.length > 0) {
@@ -135,7 +150,11 @@ export default class Player {
   preRenderingUpdate(dt: number) {
     if (this.animatedMesh != undefined) {
       if (vec3.len(this.physicsObj.velocity) > 1.0) {
-        this.animatedMesh.animate(2, dt, 1.2, 2.0);
+        let keyframe = this.animatedMesh.animate(2, dt, 1.2, 2.0);
+        console.log(keyframe);
+        if (keyframe == 28 || keyframe == 39 || keyframe == 47) {
+         this.playStepSound();
+        }
       }
       else {
         this.animatedMesh.animate(1, dt);

@@ -28,7 +28,7 @@ export default class Enemy {
     private animatedMesh: AnimatedGraphicsBundle;
     physicsObj: PhysicsObject;
     private readonly currentRotation: quat = quat.create();
-    private readonly enemyStep: Howl;
+    private readonly step: Howl;
     constructor(
         scene: Scene,
         physicsScene: PhysicsScene,
@@ -65,7 +65,7 @@ export default class Enemy {
         this.physicsObj = null;
         this.animatedMesh = null;
 
-        this.enemyStep = new Howl({
+        this.step = new Howl({
             src: ["Assets/Audio/foot_down.wav"],
             volume: 5.0,
             rate: 1.0,
@@ -158,9 +158,9 @@ export default class Enemy {
     }
 
     playStepSound() {
-        if (!this.enemyStep.playing()) {
-            this.enemyStep.play();
-            this.enemyStep.pos(this.physicsObj.transform.position);
+        if (!this.step.playing()) {
+            this.step.play();
+            this.step.pos(this.physicsObj.transform.position);
         }
     }
 
