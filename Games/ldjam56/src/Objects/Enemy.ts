@@ -278,7 +278,7 @@ export default class Enemy {
                             ),
                             playerDir
                         );
-                        let hitObject = this.physicsScene.doRayCast(ray, [
+                        let hitObject = this.map.wallsPhysicsScene.doRayCast(ray, [
                             this.physicsObj,
                         ]).object;
                         if (hitObject == this.player.physicsObj) {

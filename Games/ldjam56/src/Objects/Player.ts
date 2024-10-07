@@ -27,6 +27,7 @@ export default class Player {
   constructor(
     scene: Scene,
     physicsScene: PhysicsScene,
+    mapPhysicsScene: PhysicsScene,
     playerSpawnRoom: vec2,
     lightSource: PointLight
   ) {
@@ -68,6 +69,8 @@ export default class Player {
           this.physicsObj.isStatic = false;
           this.physicsObj.frictionCoefficient = 1.0;
           this.physicsObj.boundingBox.setMinAndMaxVectors(vec3.fromValues(-0.5, 0.0, -0.5), vec3.fromValues(0.5, 1.0, 0.5));
+
+          mapPhysicsScene.addNewPhysicsObject(null, this.physicsObj);
       });
   }
 
