@@ -192,7 +192,6 @@ function update(dt: number) {
     }
 
     player.update(dt, camera, renderer);
-    cheese.update(dt);
 
 
     for (let enemy of enemies) {
@@ -209,6 +208,11 @@ function update(dt: number) {
       if (vec3.dist(player.physicsObj.transform.position, goalRoom ) < 2.0) {
         // TODO LOAD NEXT LEVEL
         console.log("WIN");
+      }
+
+      if (vec3.dist(player.physicsObj.transform.position, cheese.position ) < 15.0) {
+        cheese.playSound();
+
       }
 
       map.updateFocusRoom(

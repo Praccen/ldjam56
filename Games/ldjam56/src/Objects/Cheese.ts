@@ -16,11 +16,11 @@ import { Input } from "../Input.js";
 import { Howler, Howl } from 'howler';
 
 export default class Cheese {
-  private readonly position: vec3;
+  readonly position: vec3;
   private mesh: GraphicsBundle;
   private readonly lightSource: PointLight;
   private readonly map: ProceduralMap;
-  private readonly step: Howl;
+  private readonly holy: Howl;
 
     constructor(
     scene: Scene,
@@ -38,7 +38,7 @@ export default class Cheese {
         vec3.set(this.lightSource.colour, 1, 0.575, 0.161);
         this.mesh = null;
 
-        this.step = new Howl({
+        this.holy = new Howl({
             src: ["Assets/Audio/foot_down.wav"], // TODO: HOLY SOUND!
             volume: 1.0,
             rate: 1.0,
@@ -66,10 +66,11 @@ export default class Cheese {
 
     }
 
-    update(dt: number) {
-
+    playSound() {
+        if (!this.holy.playing()) {
+            this.holy.play();
+            this.holy.pos(this.position);
+        }
     }
-
-
 }
 

@@ -29,6 +29,8 @@ export default class Enemy {
     physicsObj: PhysicsObject;
     private readonly currentRotation: quat = quat.create();
     private readonly step: Howl;
+    private time: number = 0;
+
     constructor(
         scene: Scene,
         physicsScene: PhysicsScene,
@@ -232,10 +234,9 @@ export default class Enemy {
         }
     }
 
-    static time: number = 0;
     lookForPlayer(dt: number) {
-        Enemy.time += dt;
-        if (Enemy.time % 2000 == 0) {
+        this.time += dt;
+        if ((this.time % 2) < 0.5) {
             if (this.player.physicsObj != undefined) {
                 const distance = vec3.distance(
                     this.physicsObj.transform.position,
@@ -272,6 +273,7 @@ export default class Enemy {
                             this.physicsObj,
                         ]).object;
                         if (hitObject == this.player.physicsObj) {
+                            console.log("hit player");
                         }
                     }
                 }
