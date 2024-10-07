@@ -17,6 +17,8 @@ import Inventory from "./GUI/Inventory.js";
 import { ItemList } from "./Objects/Items/ItemSpecs.js";
 import ItemHandler from "./Objects/Items/ItemHandler.js";
 import Enemy from "./Objects/Enemy.js";
+import { mat4 } from "gl-matrix";
+import { Howler, Howl } from "howler";
 
 /* ---- Elevator pitch ----
 A rougelite top down 3D procedurally generated dungeon crawler wher you pull a cart with a fire. 
@@ -102,6 +104,9 @@ let physicsScene = new PhysicsScene();
 
 let gameTimer: number = 0.0;
 
+// Setup howler
+Howler.pos(0, 0, 0);
+
 let map = new ProceduralMap(scene, physicsScene);
 let playerSpawnRoom = map.getPlayerSpawnRoom();
 let playerPointLight = scene.addNewPointLight();
@@ -130,6 +135,17 @@ inventory.toggle();
 
 let itemHandler = new ItemHandler(guiRenderer, gui, inventory);
 
+let enemyStep = new Howl({
+  src: ["Assets/Audio/Steps_tiles-018.ogg"],
+  volume: 1.0,
+  rate: 0.3,
+  spatial: true,
+  pos: [0, 0, 0], // Initial position in 3D space
+  panningModel: "HRTF", // HRTF for realistic 3D audio
+  refDistance: 10,
+  rolloffFactor: 1,
+});
+
 /**
  * Our update function, this will run every frame, and is responsible for moving the camera based on input.
  * This is where game logic would go if this was a complete game
@@ -139,6 +155,9 @@ function update(dt: number) {
   if (Input.keys["I"]) {
     if (!iWasPressed) {
       inventory.toggle();
+      enemyStep.pos(0, 0, 0);
+      enemyStep.play();
+      this.playingSound = true;
     }
 
     iWasPressed = true;
@@ -175,6 +194,9 @@ function update(dt: number) {
     for (let enemy of enemies) {
       enemy.update(dt, renderer);
     }
+
+    // Update sound from player
+    Howler.pos(player.physicsObj.transform.position);
 
     // Update physics
     physicsScene.update(dt);
