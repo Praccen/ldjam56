@@ -12,11 +12,7 @@ import { GetCookie, SetCookie } from "./Utils/WebUtils.js";
 import ProceduralMap from "./Generators/Map/ProceduralMapGenerator.js";
 import Player from "./Objects/Player.js";
 import GUI from "./GUI/GUI.js";
-import Inventory from "./GUI/Inventory.js";
-import { ItemList } from "./Objects/Items/ItemSpecs.js";
-import ItemHandler from "./Objects/Items/ItemHandler.js";
 import Enemy from "./Objects/Enemy.js";
-import { mat4 } from "gl-matrix";
 import { Howler, Howl } from "howler";
 import Cheese from "./Objects/Cheese.js";
 import Menu from "./GUI/Menu.js";
@@ -43,8 +39,6 @@ How to keep the game interesting and puzzle elements non repetitive?
 */
 
 let pWasPressed = false;
-let iWasPressed = false;
-let oWasPressed = false;
 
 window.addEventListener("contextmenu", function (e: Event) {
   e.preventDefault();
@@ -55,6 +49,7 @@ let renderer = new Renderer3D();
 document.body.appendChild(renderer.domElement);
 
 renderer.useVolumetric = true;
+renderer.setFogDensity(0.6);
 renderer.setFogTexture("Assets/Textures/Fog.png");
 
 // Create a GUI renderer and attach it to the document body
@@ -66,7 +61,7 @@ guiRenderer.domElement.className = "guiContainer";
 
 // Create a scene. It will automatically have a directional light, so let's set the ambient multiplier for it.
 let scene = new Scene(renderer);
-scene.getDirectionalLight().ambientMultiplier = 0.0;
+scene.getDirectionalLight().ambientMultiplier = 0.1;
 vec3.set(scene.getDirectionalLight().colour, 0.3216, 0.7412, 0.5922);
 vec3.set(scene.getDirectionalLight().direction, 0.001, 1.0, 0.0);
 
@@ -149,11 +144,6 @@ for (let i = 0; i < map.getNumEnemies(); i++) {
   enemies.push(enemy);
 }
 
-let inventory = new Inventory(guiRenderer);
-inventory.toggle();
-
-let itemHandler = new ItemHandler(guiRenderer, gui, inventory);
-
 let menu = new Menu(guiRenderer, renderer);
 
 /**
@@ -167,77 +157,42 @@ function update(dt: number) {
     return;
   }
 
-  if (Input.keys["I"]) {
-    if (!iWasPressed) {
-      inventory.toggle();
-    }
+  player.update(dt, camera, renderer);
 
-    iWasPressed = true;
-  } else {
-    iWasPressed = false;
+  for (let enemy of enemies) {
+    enemy.update(dt, renderer);
   }
 
-  if (inventory.enabled) {
-    inventory.update(dt);
+  // Update physics
+  physicsScene.update(dt);
+  cheese.update(dt);
 
-    while (inventory.droppedItems.length > 0) {
-      itemHandler.dropItem(
-        inventory.droppedItems.pop(),
-        player.physicsObj.transform.position
-      );
-    }
-    if (Input.keys["ESCAPE"]) {
-      inventory.toggle();
-    }
-  } else {
-    if (Input.keys["O"]) {
-      if (!oWasPressed) {
-        itemHandler.dropItem(
-          ItemList[Math.round(Math.random() * (ItemList.length - 1))],
-          player.physicsObj.transform.position
-        );
-      }
-      oWasPressed = true;
-    } else {
-      oWasPressed = false;
+  if (player.physicsObj != undefined) {
+    // Update sound from player
+    Howler.pos(
+      player.physicsObj.transform.position[0],
+      player.physicsObj.transform.position[1],
+      player.physicsObj.transform.position[2]
+    );
+    if (vec3.dist(player.physicsObj.transform.position, goalRoom) < 2.0) {
+      // TODO LOAD NEXT LEVEL
+      console.log("WIN");
     }
 
-    player.update(dt, camera, renderer);
-
-    for (let enemy of enemies) {
-      enemy.update(dt, renderer);
+    if (
+      vec3.dist(player.physicsObj.transform.position, cheese.position) < 15.0
+    ) {
+      cheese.playSound();
     }
 
-    // Update physics
-    physicsScene.update(dt);
-    cheese.update(dt);
-
-    if (player.physicsObj != undefined) {
-      // Update sound from player
-      Howler.pos(
+    map.updateFocusRoom(
+      vec2.fromValues(
         player.physicsObj.transform.position[0],
-        player.physicsObj.transform.position[1],
         player.physicsObj.transform.position[2]
-      );
-      if (vec3.dist(player.physicsObj.transform.position, goalRoom) < 2.0) {
-        // TODO LOAD NEXT LEVEL
-        console.log("WIN");
-      }
-
-      if (
-        vec3.dist(player.physicsObj.transform.position, cheese.position) < 15.0
-      ) {
-        cheese.playSound();
-      }
-
-      map.updateFocusRoom(
-        vec2.fromValues(
-          player.physicsObj.transform.position[0],
-          player.physicsObj.transform.position[2]
-        )
-      );
-    }
+      )
+    );
   }
+  
 }
 
 /**
@@ -255,7 +210,8 @@ function preRendereringUpdate(dt: number) {
 
   gui.gameGuiDiv.setHidden(false);
 
-  if (gui.cameraFollowCheckbox.getChecked() && player.physicsObj != undefined) {
+  // if (gui.cameraFollowCheckbox.getChecked() && player.physicsObj != undefined) {
+  if (true) {
     let offsetVec = vec3.fromValues(0.0, 15.0, 6.0);
     let x = player.physicsObj.transform.position[0];
     let y = player.physicsObj.transform.position[1];
@@ -308,10 +264,7 @@ function preRendereringUpdate(dt: number) {
     // Rotate camera with mouse click and drag
     let mouseDiff = Input.getMouseMovement();
     if (
-      Input.mouseClicked &&
-      gui.sensitivitySlider.getInputElement() != document.activeElement &&
-      gui.densitySlider.getInputElement() != document.activeElement &&
-      gui.ambientSlider.getInputElement() != document.activeElement
+      Input.mouseClicked
     ) {
       // Make sure the user is not changing a slider
       pitch -= mouseDiff[1] * sensitivity;
@@ -343,16 +296,6 @@ function preRendereringUpdate(dt: number) {
   } else {
     pWasPressed = false;
   }
-
-  // Update sensitivity according to sensitivity slider
-  sensitivity = gui.sensitivitySlider.getValue() * 0.04;
-
-  // Update fog density according to density slider
-  renderer.setFogDensity(gui.densitySlider.getValue() * 0.005);
-
-  // Update ambient multiplier based on ambient slider
-  scene.getDirectionalLight().ambientMultiplier =
-    gui.ambientSlider.getValue() * 0.01;
 
   // Update the clear colour to match the ambience
   renderer.clearColour.r =
@@ -396,9 +339,6 @@ function preRendereringUpdate(dt: number) {
   }
 
   player.preRenderingUpdate(dt);
-  if (player.physicsObj != undefined) {
-    itemHandler.preRenderingUpdate(dt, player.physicsObj.transform.position);
-  }
 
   for (const enemy of enemies) {
     enemy.preRenderingUpdate(dt);
@@ -415,7 +355,6 @@ function resize() {
 
   // Update the size of both the renderer and GUI renderer
   renderer.setSize(width, height, true);
-  inventory.resize(width, height);
   menu.resize(width, height);
   guiRenderer.setSize(width, height);
 }
@@ -438,10 +377,6 @@ window.addEventListener("beforeunload", function (e: BeforeUnloadEvent) {
       camera.getPosition()[2]
   );
   SetCookie("camDir", pitch + ":" + jaw);
-  SetCookie("fogDensity", gui.densitySlider.getValue());
-  SetCookie("sensitivity", gui.sensitivitySlider.getValue());
-  SetCookie("ambientMultiplier", gui.ambientSlider.getValue());
-  SetCookie("cameraFollow", gui.cameraFollowCheckbox.getChecked());
 });
 
 // A timer to keep track of frame time
@@ -493,8 +428,6 @@ function animate() {
     } else {
       renderer.render(scene, camera);
     }
-
-    inventory.draw();
   }
 
   guiRenderer.draw(camera);
