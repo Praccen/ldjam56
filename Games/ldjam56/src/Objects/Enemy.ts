@@ -59,8 +59,8 @@ export default class Enemy {
 
         vec3.set(this.lightSource.colour, 3, 0.5, 0.5);
 
-        console.log("Start: ", startPos);
-        console.log("End", endPos);
+        // console.log("Start: ", startPos);
+        // console.log("End", endPos);
         this.pathFirst = this.map.findPath(startPos, endPos);
         this.targetPos = this.map.getRoomCenterWorldPos(this.pathFirst[0]);
         this.pathSecond.unshift(this.pathFirst.shift());

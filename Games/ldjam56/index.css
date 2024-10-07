@@ -25,6 +25,14 @@ canvas {
   padding: 0.25em;
 }
 
+.titleText {
+  font-size: 100px;
+  font-family: inherit;
+  color: #ffffff;
+  text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+  font-weight: bold;
+}
+
 .guiContainer {
   position: relative;
 }

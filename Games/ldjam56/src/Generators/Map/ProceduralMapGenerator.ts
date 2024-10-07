@@ -366,17 +366,17 @@ b22211C112222a
           if (!this.enemyNumbers.includes(num.toUpperCase())) {
             this.enemyNumbers.push(num.toUpperCase());
             this.enemyPaths.set(num.toUpperCase(), new Path());
-            console.log("Adding: ", num.toUpperCase());
+            // console.log("Adding: ", num.toUpperCase());
           }
           if (num == num.toUpperCase()) {
-            console.log("Starting: ", num.toUpperCase());
+            // console.log("Starting: ", num.toUpperCase());
             this.enemyPaths.get(num.toUpperCase()).start = pos;
           } else {
-            console.log("Ending: ", num.toUpperCase());
+            // console.log("Ending: ", num.toUpperCase());
             this.enemyPaths.get(num.toUpperCase()).end = pos;
           }
 
-          console.log(pos);
+          // console.log(pos);
         }
       }
       rowNr++;

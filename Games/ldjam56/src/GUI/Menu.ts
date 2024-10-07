@@ -14,6 +14,7 @@ import { GetCookie, SetCookie } from "../Utils/WebUtils.js";
 import {Howler} from "howler";
 import { vec3 } from "gl-matrix";
 import { Factories } from "../Utils/Factories.js";
+import { title } from "process";
 
 export default class Menu {
   private guiRenderer: GUIRenderer;
@@ -92,7 +93,7 @@ export default class Menu {
 
     // Create a camera and set it's starting position
     this.menuCamera = new Camera();
-    this.menuCamera.setPosition(vec3.fromValues(0.0, 4.0, 4.0));
+    this.menuCamera.setPosition(vec3.fromValues(2.0, 4.0, 4.0));
     this.menuCamera.setDir(vec3.fromValues(0.0, -1.0, -1.0));
 
     let pl = this.menuScene.addNewPointLight();
@@ -120,10 +121,19 @@ export default class Menu {
 
 
     // Main menu
+    let titleText = this.guiRenderer.getNew2DText(this.menuDiv);
+    titleText.ignoreEngineModifiers = true;
+    titleText.textString = "Cheddar Chase";
+    titleText.getElement().className = "titleText";
+    titleText.getElement().style.top = "100px";
+    titleText.getElement().style.position = "relative";
+    titleText.getElement().style.margin = "auto";
+    titleText.getElement().style.display = "block"; 
+    titleText.getElement().style.marginTop = "40px";
     this.createButton(this.menuDiv, "Start game", (ev) => {self.toggle()});
     this.createButton(this.menuDiv, "Options", (ev) => {self.menuDiv.setHidden(true); self.optionsDiv.setHidden(false)});
     this.createButton(this.menuDiv, "Fullscreen", (ev) => {document.getElementById("game").requestFullscreen();})
-
+    
     // Options menu
     this.createButton(this.optionsDiv, "Back to main menu", (ev) => {self.menuDiv.setHidden(false); self.optionsDiv.setHidden(true)});
 
@@ -225,7 +235,10 @@ export default class Menu {
     if (cookieName != "") {
       const cookieValue = GetCookie(cookieName);
       if (cookieValue != "") {
-        checkbox.getInputElement().checked = cookieValue == "true";
+        checkbox.getInputElement().checked = cookieValue != "false";
+      }
+      else {
+        checkbox.getInputElement().checked = true;
       }
     }
 
