@@ -10,10 +10,13 @@ import {
     mat4,
     PointLight,
     AnimatedGraphicsBundle,
+    GraphicsBundle,
+    Transform,
 } from "praccen-web-engine";
 import ProceduralMap from "../Generators/Map/ProceduralMapGenerator.js";
 import Player from "./Player.js";
 import { Howler, Howl } from 'howler';
+import { Factories } from "../Utils/Factories.js";
 
 export default class Enemy {
     private readonly physicsScene: PhysicsScene;
@@ -29,6 +32,7 @@ export default class Enemy {
     physicsObj: PhysicsObject;
     private readonly currentRotation: quat = quat.create();
     private readonly step: Howl;
+    private lanternMesh: GraphicsBundle;
     private time: number = 0;
 
     constructor(
@@ -54,7 +58,7 @@ export default class Enemy {
 
         this.player = player;
 
-        vec3.set(this.lightSource.colour, 2, 0.5, 0.5);
+        vec3.set(this.lightSource.colour, 3, 0.5, 0.5);
 
         if (reverse) {
             this.pathFirst = this.map.findPath(endPos, startPos);
@@ -80,7 +84,7 @@ export default class Enemy {
 
         scene
             .addNewAnimatedMesh(
-                "Assets/gltf/Rat/RatWalking.gltf",
+                "Assets/gltf/Rat/RatLanternWalk.gltf",
                 "Assets/gltf/Rat/Colour.png",
                 "CSS:rgb(0,0,0)"
             )
@@ -100,6 +104,11 @@ export default class Enemy {
                 this.physicsObj.frictionCoefficient = 1.0;
                 this.physicsObj.boundingBox.setMinAndMaxVectors(vec3.fromValues(-1.0, 0.0, -1.0), vec3.fromValues(1.0, 3.0, 1.0));
             });
+
+        this.lanternMesh = null;
+        Factories.createMesh(scene, "Assets/objs/Lantern.obj", vec3.fromValues(15.0, 2.0, 12.0), vec3.fromValues(1.0, 1.0, 1.0), "CSS:rgb(150,0,0)", "CSS:rgb(0,0,0)").then((mesh) => {
+            this.lanternMesh = mesh;
+        });
     }
 
     updateTargetPos() {
@@ -287,6 +296,28 @@ export default class Enemy {
                 let keyframe = this.animatedMesh.animate(0, dt);
                 if (keyframe == 10 || keyframe == 28) {
                     this.playStepSound();
+                }
+
+                if (this.lanternMesh != undefined && this.animatedMesh.graphicsObjectAndGltfObject.gltfObject != undefined) {
+                    let handIndex = this.animatedMesh.graphicsObjectAndGltfObject.gltfObject.nodeNameToIndexMap.get("Rat:LeftHand");
+                    if (handIndex != undefined) {
+                        let node = this.animatedMesh.graphicsObjectAndGltfObject.gltfObject.nodes[handIndex];
+                        
+                        let mat = mat4.create();
+
+                        mat4.translate(mat, mat, vec3.fromValues(1.4, 2.2, -2.2));
+                        mat4.scale(mat, mat, vec3.fromValues(0.5, 0.5, 0.5));
+                        mat4.mul(mat, node.transform.matrix, mat);
+                        mat4.mul(mat, this.animatedMesh.transform.matrix, mat);
+                        // mat4.rotateY(mat, mat, -Math.PI * 0.5);
+                        // mat4.rotateZ(mat, mat, -Math.PI * 0.5);
+
+                        this.lanternMesh.transform.position = vec3.transformMat4(vec3.create(), vec3.create(), mat);
+                        vec3.set(this.lanternMesh.transform.scale, 0.4, 0.4, 0.4);
+                        quat.copy(this.lanternMesh.transform.rotation, this.animatedMesh.transform.rotation);
+                        quat.rotateY(this.lanternMesh.transform.rotation, this.lanternMesh.transform.rotation, Math.PI * 0.5);
+                        vec3.add(this.lightSource.position, this.lanternMesh.transform.position, vec3.fromValues(0.0, -0.4, 0.0));
+                    }
                 }
             }
         }
