@@ -49,7 +49,7 @@ export default class Player {
     this.animatedMesh = null;
     this.step = new Howl({
         src: ["Assets/Audio/mouse_step.wav"],
-        volume: 10.0,
+        volume: 2.0,
         rate: 1.0,
     });
 

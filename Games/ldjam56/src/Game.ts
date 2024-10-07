@@ -123,7 +123,8 @@ let playerSpawnRoom = map.getPlayerSpawnRoom();
 let goalRoom = map.getRoomCenterWorldPos(map.getGoalRoom());
 let playerPointLight = scene.addNewPointLight();
 let player = new Player(scene, physicsScene, playerSpawnRoom, playerPointLight);
-let cheese = new Cheese(scene, goalRoom, map, playerPointLight);
+let cheesePointLight = scene.addNewPointLight();
+let cheese = new Cheese(scene, goalRoom, map, cheesePointLight);
 let enemies = new Array<Enemy>();
 for (let i = 0; i < map.getNumEnemies(); i++) {
   let path = map.getEnemyPath(i);
@@ -201,6 +202,7 @@ function update(dt: number) {
 
     // Update physics
     physicsScene.update(dt);
+    cheese.update(dt);
 
     if (player.physicsObj != undefined) {
       // Update sound from player
