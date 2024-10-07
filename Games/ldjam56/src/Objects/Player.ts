@@ -12,7 +12,6 @@ import {
 } from "praccen-web-engine";
 import { PointLight } from "../../../../dist/Engine.js";
 import { Input } from "../Input.js";
-import { Factories } from "../Utils/Factories.js";
 
 export default class Player {
   private physicsScene: PhysicsScene;
@@ -77,11 +76,21 @@ export default class Player {
   }
 
   update(dt: number, camera: Camera, renderer: Renderer3D) {
-    if (Input.mouseRightClicked) {
+    if (Input.mouseRightClicked || Input.touches.length > 0) {
+      let clickX = 0;
+      let clickY = 0;
+      if (Input.mouseRightClicked) {
+        clickX = Input.mousePosition.x;
+        clickY = Input.mousePosition.y;
+      } else if (Input.touches.length > 0) {
+        clickX = Input.touches[0][0];
+        clickY = Input.touches[0][1]; 
+      }
+
       let rect = renderer.domElement.getClientRects()[0];
       let ndc = vec2.fromValues(
-        (Input.mousePosition.x - rect.left) / rect.width,
-        (Input.mousePosition.y - rect.top) / rect.height
+        (clickX - rect.left) / rect.width,
+        (clickY - rect.top) / rect.height
       );
       ndc[0] = ndc[0] * 2.0 - 1.0;
       ndc[1] = ndc[1] * -2.0 + 1.0;

@@ -7,6 +7,8 @@ class InputHandler {
     this.mouseClicked = false;
     this.mouseRightClicked = false;
 
+    this.touches = [];
+
     this.mouseMovementSinceLast = [0, 0];
 
     this.simulateTouchBasedOnMouse = false;
@@ -66,7 +68,6 @@ class InputHandler {
       self.handleTouch(event.touches);
     });
     document.addEventListener("touchmove", function (event) {
-      event.preventDefault();
       self.handleTouch(event.touches);
     });
     document.addEventListener("touchend", function (event) {
@@ -81,9 +82,15 @@ class InputHandler {
   mouseMoveCallBack(event) {
     // Overload this if you want direct controll of the events
   }
-
+  
   handleTouch(touches) {
     this.touchUsed = true;
+    this.touches.length = 0;
+    for (let i = 0; i < touches.length; i++) {
+      this.touches.push(
+        [touches.item(i).clientX, touches.item(i).clientY]
+      );
+    }
   }
 
   getMouseMovement() {
