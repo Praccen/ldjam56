@@ -6,9 +6,7 @@ import {
   Scene,
   Camera,
   PhysicsScene,
-  AnimatedGraphicsBundle,
   MousePicking,
-  quat,
 } from "praccen-web-engine";
 import { Input } from "./Input.js";
 import { GetCookie, SetCookie } from "./Utils/WebUtils.js";
@@ -19,7 +17,6 @@ import Inventory from "./GUI/Inventory.js";
 import { ItemList } from "./Objects/Items/ItemSpecs.js";
 import ItemHandler from "./Objects/Items/ItemHandler.js";
 import Enemy from "./Objects/Enemy.js";
-import { mat4 } from "gl-matrix";
 
 /* ---- Elevator pitch ----
 A rougelite top down 3D procedurally generated dungeon crawler wher you pull a cart with a fire. 
@@ -70,37 +67,6 @@ scene.getDirectionalLight().ambientMultiplier = 0.0;
 vec3.set(scene.getDirectionalLight().colour, 1.0, 0.3, 0.0);
 vec3.set(scene.getDirectionalLight().direction, 0.001, 1.0, 0.0);
 
-// let pointLights = [];
-// for (let i = 0; i < 2; i++) {
-//   break;
-//   let tempLight = scene.addNewPointLight();
-//   if (tempLight == undefined) {
-//     break;
-//   }
-
-//   pointLights.push(tempLight);
-//   pointLights[i].castShadow = true;
-//   vec3.set(pointLights[i].colour, 1.5, 1.5, 1.5);
-
-//   if (!pointLights[i].castShadow) {
-//     pointLights[i].linear *= 0.3;
-//     pointLights[i].constant *= 0.3;
-//     pointLights[i].quadratic *= 0.3;
-//   }
-
-//   vec3.set(pointLights[i].position, 10.0, 2.0, 0.0);
-//   const pointLightPosCookie = GetCookie("pointLights[" + i + "]Pos");
-//   if (pointLightPosCookie != "") {
-//     vec3.set(
-//       pointLights[i].position,
-//       parseFloat(pointLightPosCookie.split(":")[0]),
-//       parseFloat(pointLightPosCookie.split(":")[1]),
-//       parseFloat(pointLightPosCookie.split(":")[2])
-//     );
-//   }
-// }
-
-// scene.directionalLight.shadowFocusPos = pointLights[0].position;
 scene.directionalLight.shadowCameraDistance = 100;
 scene.directionalLight.lightProjectionBoxSideLength = 100;
 
@@ -214,7 +180,7 @@ function update(dt: number) {
     physicsScene.update(dt);
 
     if (player.physicsObj != undefined) {
-      map.updatePhysicsObjects(
+      map.updateFocusRoom(
         vec2.fromValues(
           player.physicsObj.transform.position[0],
           player.physicsObj.transform.position[2]
@@ -255,6 +221,8 @@ function preRendereringUpdate(dt: number) {
       0.0,
       map.focusRoom[1] * 10.0 + 5.0
     );
+
+    gui.mapDisplay.setHidden(false);
   } else {
     // Move camera with WASD (W and S will move along the direction of the camera, not along the xz plane)
     const cameraSpeed = 10.0;
@@ -307,9 +275,7 @@ function preRendereringUpdate(dt: number) {
 
     camera.setPitchJawDegrees(pitch, jaw); // Update the rotation of the camera
 
-    // scene.getDirectionalLight().shadowFocusPos = pointLights[0].position;
-
-    // console.log(camera.getPosition());
+    gui.mapDisplay.setHidden(true);
   }
 
   if (Input.keys["P"]) {
@@ -320,36 +286,6 @@ function preRendereringUpdate(dt: number) {
     pWasPressed = true;
   } else {
     pWasPressed = false;
-  }
-
-  if (Input.keys["E"]) {
-    let pointLightIndex = 0;
-    // for (let i = 0; i < pointLights.length; i++) {
-    //   if (Input.keys[(i + 1).toString()]) {
-    //     pointLightIndex = i;
-    //     break;
-    //   }
-    // }
-
-    let rect = renderer.domElement.getClientRects()[0];
-    let ndc = vec2.fromValues(
-      (Input.mousePosition.x - rect.left) / rect.width,
-      (Input.mousePosition.y - rect.top) / rect.height
-    );
-    ndc[0] = ndc[0] * 2.0 - 1.0;
-    ndc[1] = ndc[1] * -2.0 + 1.0;
-
-    let ray = MousePicking.GetRay(camera, ndc);
-    let dist = physicsScene.doRayCast(ray).distance;
-    // if (dist < Infinity) {
-    //   vec3.scaleAndAdd(
-    //     pointLights[pointLightIndex].position,
-    //     camera.getPosition(),
-    //     ray.getDir(),
-    //     dist
-    //   );
-    //   pointLights[pointLightIndex].position[1] += 3.0;
-    // }
   }
 
   // Update sensitivity according to sensitivity slider
@@ -463,16 +399,6 @@ window.addEventListener("beforeunload", function (e: BeforeUnloadEvent) {
   SetCookie("sensitivity", gui.sensitivitySlider.getValue());
   SetCookie("ambientMultiplier", gui.ambientSlider.getValue());
   SetCookie("volumetric", gui.volumetricLightingCheckbox.getChecked());
-  // for (let i = 0; i < pointLights.length; i++) {
-  //   SetCookie(
-  //     "pointLights[" + i + "]Pos",
-  //     pointLights[i].position[0] +
-  //       ":" +
-  //       pointLights[i].position[1] +
-  //       ":" +
-  //       pointLights[i].position[2]
-  //   );
-  // }
   SetCookie("cameraFollow", gui.cameraFollowCheckbox.getChecked());
 });
 
