@@ -254,6 +254,7 @@ export default class Menu {
 
   resize(width: number, height: number) {
     this.menuRenderer.setSize(width, height, true);
+    this.menuCamera.setAspectRatio(width / height);
   }
 
   update(dt: number) {
