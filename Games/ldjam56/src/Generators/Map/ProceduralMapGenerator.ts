@@ -211,6 +211,7 @@ export default class ProceduralMap {
   private exploredAsciiMap: string;
   private visitedRooms: Set<string>;
   private playerSpawnRoom: vec2;
+  private goalRoom: vec2 = vec2.create();
   private enemyPaths: Map<string, Path> = new Map<string, Path>();
   private enemyNumbers: string[] = new Array<string>();
   focusRoom: vec2;
@@ -232,7 +233,7 @@ A2222B
 225222
 224422
 224422
-222222
+222262
 B2222A
 `;
 
@@ -309,25 +310,29 @@ B2222A
         if (row[columnNr] == "0") {
           noGoRooms.push([columnNr, rowNr]);
         }
-        if (row[columnNr] == "2") {
+        else if (row[columnNr] == "2") {
           mustGoRooms.push([columnNr, rowNr]);
         }
-        if (row[columnNr] == "3") {
+        else if (row[columnNr] == "3") {
           noGoRooms.push([columnNr, rowNr]);
           connectionRooms.push([columnNr, rowNr]);
         }
-        if (row[columnNr] == "4") {
+        else if (row[columnNr] == "4") {
           mustGoRooms.push([columnNr, rowNr]);
           connectionRooms.push([columnNr, rowNr]);
         }
-        if (row[columnNr] == "5") {
+        else if (row[columnNr] == "5") {
           mustGoRooms.push([columnNr, rowNr]);
           connectionRooms.push([columnNr, rowNr]);
           vec2.set(this.playerSpawnRoom, columnNr, rowNr);
         }
-        if (Number(row[columnNr]) > 5 || isNaN(+row[columnNr])) {
+        else if (row[columnNr] == "6") {
           mustGoRooms.push([columnNr, rowNr]);
-          // connectionRooms.push([columnNr, rowNr]);
+          connectionRooms.push([columnNr, rowNr]);
+          vec2.set(this.goalRoom, columnNr * 2 + 1, rowNr * 2 + 1);
+        }
+        else if (Number(row[columnNr]) > 6 || isNaN(+row[columnNr])) {
+          mustGoRooms.push([columnNr, rowNr]);
           let num = row[columnNr];
           if (!this.enemyPaths.has(num)) {
             this.enemyNumbers.push(num);
@@ -733,6 +738,9 @@ B2222A
 
   getPlayerSpawnRoom(): vec2 {
     return this.playerSpawnRoom;
+  }
+  getGoalRoom(): vec2 {
+    return this.goalRoom;
   }
 
   getRoomCenterWorldPos(room: vec2): vec3 {

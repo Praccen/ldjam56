@@ -119,6 +119,7 @@ themeMusic.play();
 
 let map = new ProceduralMap(scene, physicsScene);
 let playerSpawnRoom = map.getPlayerSpawnRoom();
+let goalRoom = map.getRoomCenterWorldPos(map.getGoalRoom());
 let playerPointLight = scene.addNewPointLight();
 let player = new Player(scene, physicsScene, playerSpawnRoom, playerPointLight);
 let enemies = new Array<Enemy>();
@@ -189,6 +190,8 @@ function update(dt: number) {
     }
 
     player.update(dt, camera, renderer);
+
+
     for (let enemy of enemies) {
       enemy.update(dt, renderer);
     }
@@ -200,6 +203,10 @@ function update(dt: number) {
     if (player.physicsObj != undefined) {
       // Update sound from player
       Howler.pos(player.physicsObj.transform.position[0], player.physicsObj.transform.position[1], player.physicsObj.transform.position[2]);
+      if (vec3.dist(player.physicsObj.transform.position, goalRoom ) < 2.0){
+        // TODO LOAD NEXT LEVEL
+        console.log("WIN");
+      }
 
       map.updateFocusRoom(
         vec2.fromValues(

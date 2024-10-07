@@ -151,7 +151,6 @@ export default class Player {
     if (this.animatedMesh != undefined) {
       if (vec3.len(this.physicsObj.velocity) > 1.0) {
         let keyframe = this.animatedMesh.animate(2, dt, 1.2, 2.0);
-        console.log(keyframe);
         if (keyframe == 28 || keyframe == 39 || keyframe == 47) {
          this.playStepSound();
         }
