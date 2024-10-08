@@ -14,6 +14,7 @@ export default class GameState {
   private physicsScene: PhysicsScene;
   camera: Camera;
   gui: GUI;
+  gameOver: boolean = false;
 
   private pitch: number = -30.0;
   private jaw: number = 210.0;
@@ -40,6 +41,22 @@ export default class GameState {
     this.renderer.setFogRenderScale(1.0);
     this.renderer.setFogDensity(0.6);
     this.renderer.setFogTexture("Assets/Textures/Fog.png");
+
+    this.gui = new GUI(guiRenderer);
+
+    this.reset();
+  }
+
+  resize(width: number, height: number) {
+    // Update the camera aspect ratio to fit the new size
+    this.camera.setAspectRatio(width / height);
+
+    // Update the size of both the renderer and GUI renderer
+    this.renderer.setSize(width, height, true);
+  }
+
+  reset() {
+    this.gameOver = false;
 
     // Create a scene. It will automatically have a directional light, so let's set the ambient multiplier for it.
     this.scene = new Scene(this.renderer);
@@ -70,8 +87,6 @@ export default class GameState {
       this.jaw = parseFloat(camDirCookie.split(":")[1]);
     }
 
-    this.gui = new GUI(guiRenderer);
-
     // Physics scene
     this.physicsScene = new PhysicsScene();
 
@@ -100,18 +115,11 @@ export default class GameState {
         this.enemies,
         pointLight,
         this.player,
-        this.renderer
+        this.renderer,
+        this
       );
       this.enemies.push(enemy);
     }
-  }
-
-  resize(width: number, height: number) {
-    // Update the camera aspect ratio to fit the new size
-    this.camera.setAspectRatio(width / height);
-
-    // Update the size of both the renderer and GUI renderer
-    this.renderer.setSize(width, height, true);
   }
 
   update(dt: number) {

@@ -17,6 +17,7 @@ import ProceduralMap from "../Generators/Map/ProceduralMapGenerator.js";
 import Player from "./Player.js";
 import { Howler, Howl } from "howler";
 import { Factories } from "../Utils/Factories.js";
+import GameState from "../States/GameState.js";
 
 export default class Enemy {
     private readonly physicsScene: PhysicsScene;
@@ -34,6 +35,7 @@ export default class Enemy {
     private readonly step: Howl;
     private lanternMesh: GraphicsBundle;
     private time: number = 0;
+    private gameState: GameState;
 
     constructor(
         scene: Scene,
@@ -44,8 +46,10 @@ export default class Enemy {
         enemies: Enemy[],
         lightSource: PointLight,
         player: Player,
-        renderer: Renderer3D
+        renderer: Renderer3D,
+        gameState: GameState
     ) {
+        this.gameState = gameState;
         this.physicsScene = physicsScene;
         this.map = map;
         this.enemies = enemies;
@@ -258,7 +262,7 @@ export default class Enemy {
                 this.physicsObj.transform.position,
                 this.player.physicsObj.transform.position
             );
-            if (distance < 50) {
+            if (distance < 10) {
                 let playerDir = vec3.sub(
                     vec3.create(),
                     this.player.physicsObj.transform.position,
@@ -291,6 +295,7 @@ export default class Enemy {
                     ).object;
                     if (hitObject == this.player.physicsObj) {
                         console.log("hit player");
+                        this.gameState.gameOver = true;
                     }
                 }
             }

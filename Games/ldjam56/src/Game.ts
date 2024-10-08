@@ -42,7 +42,11 @@ function update(dt: number) {
     return;
   }
 
-  gameState.update(dt);  
+  gameState.update(dt);
+  if (gameState.gameOver) {
+    menu.toggle();
+    gameState.reset();
+  }
 }
 
 /**
