@@ -27,6 +27,7 @@ export default class Menu {
   private menuCamera: Camera;
 
   private mouse: AnimatedGraphicsBundle;
+  private mouseAnimationIndex: number = 1;
 
   enabled: boolean;
 
@@ -305,6 +306,13 @@ export default class Menu {
     this.optionsDiv.setHidden(true);
     this.gameOverDiv.setHidden(false);
     this.gameWonDiv.setHidden(true);
+    this.mouseAnimationIndex = 0;
+
+    if (this.mouse != undefined) {
+      quat.fromEuler(this.mouse.transform.rotation, 0.0, 0.0, 0.0);
+      vec3.set(this.mouse.transform.position, -1.7, 0.4, -1.0);
+    }
+    
   }
 
   goToGameWonScreen() {
@@ -312,6 +320,12 @@ export default class Menu {
     this.optionsDiv.setHidden(true);
     this.gameOverDiv.setHidden(true);
     this.gameWonDiv.setHidden(false);
+    this.mouseAnimationIndex = 3;
+
+    if (this.mouse != undefined) {
+      quat.fromEuler(this.mouse.transform.rotation, 0.0, 180.0, 0.0);
+      vec3.set(this.mouse.transform.position, 0.0, 0.4, -0.5);
+    }
   }
 
   resize(width: number, height: number) {
@@ -325,7 +339,7 @@ export default class Menu {
 
   preRenderingUpdate(dt: number) {
     if (this.mouse != undefined) {
-      this.mouse.animate(1, dt);
+      this.mouse.animate(this.mouseAnimationIndex, dt);
     }
   }
 
