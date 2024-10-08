@@ -1,5 +1,6 @@
 ### What is it
-A typescript WebGL game engine
+This is our submission for Ludum Dare 56. 
+Here's the game page https://ldjam.com/events/ludum-dare/56/cheddar-chase 
 
 ### Setup
 
