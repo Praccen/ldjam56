@@ -294,7 +294,7 @@ export default class Enemy {
                         [this.physicsObj]
                     ).object;
                     if (hitObject.physicsObjectId === this.player.physicsObj.physicsObjectId) {
-                        console.log("hit player");
+                        // console.log("hit player");
                         this.gameState.gameOver = true;
                     }
                 }

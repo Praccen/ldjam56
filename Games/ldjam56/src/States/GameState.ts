@@ -15,6 +15,7 @@ export default class GameState {
   camera: Camera;
   gui: GUI;
   gameOver: boolean = false;
+  gameWon: boolean = false;
 
   private pitch: number = -30.0;
   private jaw: number = 210.0;
@@ -57,6 +58,7 @@ export default class GameState {
 
   reset() {
     this.gameOver = false;
+    this.gameWon = false;
 
     // Create a scene. It will automatically have a directional light, so let's set the ambient multiplier for it.
     this.scene = new Scene(this.renderer);
@@ -142,7 +144,8 @@ export default class GameState {
       );
       if (vec3.dist(this.player.physicsObj.transform.position, this.map.getRoomCenterWorldPos(this.map.getGoalRoom())) < 2.0) {
         // TODO LOAD NEXT LEVEL
-        console.log("WIN");
+        // console.log("WIN");
+        this.gameWon = true;
       }
 
       if (

@@ -33,6 +33,14 @@ canvas {
   font-weight: bold;
 }
 
+.gameOverText {
+  font-size: 100px;
+  font-family: inherit;
+  color: rgb(255, 0, 0);
+  text-shadow: -2px 0 rgb(105, 14, 14), 0 2px rgb(105, 14, 14), 2px 0 rgb(105, 14, 14), 0 -2px rgb(105, 14, 14);
+  font-weight: bold;
+}
+
 .guiContainer {
   position: relative;
 }

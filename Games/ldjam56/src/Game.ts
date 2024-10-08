@@ -43,8 +43,14 @@ function update(dt: number) {
   }
 
   gameState.update(dt);
+  if (gameState.gameWon) {
+    menu.toggle();
+    menu.goToGameWonScreen();
+    gameState.reset();
+  }
   if (gameState.gameOver) {
     menu.toggle();
+    menu.goToGameOverScreen();
     gameState.reset();
   }
 }
