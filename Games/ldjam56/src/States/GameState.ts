@@ -1,4 +1,12 @@
-import { Camera, GUIRenderer, PhysicsScene, Renderer3D, Scene, vec2, vec3 } from "praccen-web-engine";
+import {
+  Camera,
+  GUIRenderer,
+  PhysicsScene,
+  Renderer3D,
+  Scene,
+  vec2,
+  vec3,
+} from "praccen-web-engine";
 import { GetCookie, SetCookie } from "../Utils/WebUtils.js";
 import GUI from "../GUI/GUI.js";
 import ProceduralMap from "../Generators/Map/ProceduralMapGenerator.js";
@@ -16,6 +24,7 @@ export default class GameState {
   gui: GUI;
   gameOver: boolean = false;
   playerSpottedByEnemy: Enemy = null;
+  levelWon: boolean = false;
   gameWon: boolean = false;
   private cameraSlerpStartPosition: vec3 = vec3.create();
   private cameraSlerpStartDir: vec3 = vec3.create();
@@ -31,9 +40,10 @@ export default class GameState {
   private player: Player;
   private enemies: Enemy[];
   private cheese: Cheese;
+  level: number = 1;
+  finalLevel: number = 2;
 
   constructor(guiRenderer: GUIRenderer) {
-
     // Create a renderer and attach it to the document body
     this.renderer = new Renderer3D();
     document.body.appendChild(this.renderer.domElement);
@@ -62,6 +72,7 @@ export default class GameState {
   reset() {
     this.gameOver = false;
     this.gameWon = false;
+    this.levelWon = false;
     this.playerSpottedByEnemy = null;
 
     // Create a scene. It will automatically have a directional light, so let's set the ambient multiplier for it.
@@ -96,7 +107,12 @@ export default class GameState {
     // Physics scene
     this.physicsScene = new PhysicsScene();
 
-    this.map = new ProceduralMap(this.scene, this.physicsScene);
+    this.map = new ProceduralMap(
+      this.scene,
+      this.physicsScene,
+      this.level,
+      this.level == this.finalLevel
+    );
     let playerSpawnRoom = this.map.getPlayerSpawnRoom();
     let playerPointLight = this.scene.addNewPointLight();
     this.player = new Player(
@@ -106,8 +122,17 @@ export default class GameState {
       playerSpawnRoom,
       playerPointLight
     );
-    let cheesePointLight = this.scene.addNewPointLight();
-    this.cheese = new Cheese(this.scene, this.map.getRoomCenterWorldPos(this.map.getGoalRoom()), this.map, cheesePointLight);
+
+    if (this.level == this.finalLevel) {
+      let cheesePointLight = this.scene.addNewPointLight();
+      this.cheese = new Cheese(
+        this.scene,
+        this.map.getRoomCenterWorldPos(this.map.getGoalRoom()),
+        this.map,
+        cheesePointLight
+      );
+    }
+
     this.enemies = new Array<Enemy>();
     for (let i = 0; i < this.map.getNumEnemies(); i++) {
       let path = this.map.getEnemyPath(i);
@@ -131,11 +156,31 @@ export default class GameState {
   setupSpottedAnimation(progress: number) {
     this.gui.mapDisplay.setHidden(true);
     if (this.playerSpottedByEnemy != undefined) {
-      let targetDir = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), this.player.physicsObj.transform.position, this.camera.getPosition()));
-      let targetPos = vec3.add(vec3.create(), this.playerSpottedByEnemy.physicsObj.transform.position, vec3.fromValues(0.0, 2.5, 0.0));
+      let targetDir = vec3.normalize(
+        vec3.create(),
+        vec3.sub(
+          vec3.create(),
+          this.player.physicsObj.transform.position,
+          this.camera.getPosition()
+        )
+      );
+      let targetPos = vec3.add(
+        vec3.create(),
+        this.playerSpottedByEnemy.physicsObj.transform.position,
+        vec3.fromValues(0.0, 2.5, 0.0)
+      );
       vec3.scaleAndAdd(targetPos, targetPos, targetDir, -1.5);
-      this.camera.setPosition(vec3.lerp(vec3.create(), this.cameraSlerpStartPosition, targetPos, progress));
-      this.camera.setDir(vec3.lerp(vec3.create(), this.cameraSlerpStartDir, targetDir, progress));
+      this.camera.setPosition(
+        vec3.lerp(
+          vec3.create(),
+          this.cameraSlerpStartPosition,
+          targetPos,
+          progress
+        )
+      );
+      this.camera.setDir(
+        vec3.lerp(vec3.create(), this.cameraSlerpStartDir, targetDir, progress)
+      );
     }
   }
 
@@ -148,7 +193,12 @@ export default class GameState {
 
     // Update physics
     this.physicsScene.update(dt);
-    this.cheese.update(dt);
+    if (this.level == this.finalLevel) {
+      this.cheese.update(dt);
+      this.cheese.position = this.map.getRoomCenterWorldPos(
+        this.map.getGoalRoom()
+      );
+    }
 
     if (this.player.physicsObj != undefined) {
       // Update sound from player
@@ -157,16 +207,36 @@ export default class GameState {
         this.player.physicsObj.transform.position[1],
         this.player.physicsObj.transform.position[2]
       );
-      if (vec3.dist(this.player.physicsObj.transform.position, this.map.getRoomCenterWorldPos(this.map.getGoalRoom())) < 2.0) {
-        // TODO LOAD NEXT LEVEL
-        // console.log("WIN");
-        this.gameWon = true;
-      }
 
-      if (
-        vec3.dist(this.player.physicsObj.transform.position, this.cheese.position) < 15.0
-      ) {
-        this.cheese.playSound();
+      if (this.level == this.finalLevel) {
+        if (
+          vec3.dist(
+            this.player.physicsObj.transform.position,
+            this.map.getRoomCenterWorldPos(this.map.getGoalRoom())
+          ) < 2.0
+        ) {
+          this.gameWon = true;
+          this.level = 1;
+        }
+
+        if (
+          vec3.dist(
+            this.player.physicsObj.transform.position,
+            this.cheese.position
+          ) < 15.0
+        ) {
+          this.cheese.playSound();
+        }
+      } else {
+        if (
+          vec3.dist(
+            this.player.physicsObj.transform.position,
+            this.map.getRoomCenterWorldPos(this.map.getGoalRoom())
+          ) < 5.0
+        ) {
+          this.levelWon = true;
+          this.level++;
+        }
       }
 
       this.map.updateFocusRoom(
@@ -233,9 +303,7 @@ export default class GameState {
 
       // Rotate camera with mouse click and drag
       let mouseDiff = Input.getMouseMovement();
-      if (
-        Input.mouseClicked
-      ) {
+      if (Input.mouseClicked) {
         // Make sure the user is not changing a slider
         this.pitch -= mouseDiff[1] * 0.5;
         this.jaw -= mouseDiff[0] * 0.5;
@@ -283,7 +351,7 @@ export default class GameState {
 
     // Update the clear colour to match the ambience
     this.renderer.clearColour.r =
-    this.scene.getDirectionalLight().colour[0] *
+      this.scene.getDirectionalLight().colour[0] *
       (0.44 * this.scene.getDirectionalLight().ambientMultiplier);
     this.renderer.clearColour.g =
       this.scene.getDirectionalLight().colour[1] *
@@ -319,7 +387,8 @@ export default class GameState {
           100.0 +
         "% ";
       this.gui.mapDisplay.position = this.player.physicsObj.transform.position;
-      this.gui.characterDisplay.position = this.player.physicsObj.transform.position;
+      this.gui.characterDisplay.position =
+        this.player.physicsObj.transform.position;
     }
 
     this.player.preRenderingUpdate(dt);

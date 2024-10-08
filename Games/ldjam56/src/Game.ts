@@ -1,6 +1,4 @@
-import {
-  GUIRenderer,
-} from "praccen-web-engine";
+import { GUIRenderer } from "praccen-web-engine";
 import { Howler, Howl } from "howler";
 import Menu from "./States/Menu.js";
 import GameState from "./States/GameState.js";
@@ -44,13 +42,14 @@ function update(dt: number) {
     return;
   }
 
-  if (gameState.gameWon) {
+  if (gameState.levelWon) {
+    gameState.reset();
+  } else if (gameState.gameWon) {
     menu.toggle();
     menu.goToGameWonScreen();
     gameState.reset();
-  }
-  else if (gameState.gameOver) {
-    gameWonTimer+= dt;
+  } else if (gameState.gameOver) {
+    gameWonTimer += dt;
     gameState.setupSpottedAnimation(Math.min(gameWonTimer / 3.0, 1.0));
 
     if (gameWonTimer >= 5.0) {
@@ -59,8 +58,7 @@ function update(dt: number) {
       menu.goToGameOverScreen();
       gameState.reset();
     }
-  }
-  else {
+  } else {
     gameState.update(dt);
   }
 }
@@ -93,7 +91,7 @@ function resize() {
   let width = window.innerWidth;
   let height = window.innerHeight;
 
-  gameState.resize(width, height); 
+  gameState.resize(width, height);
   menu.resize(width, height);
   guiRenderer.setSize(width, height);
 }
@@ -126,7 +124,9 @@ function animate() {
   frames++;
   fpsUpdateTimer += dt;
   if (fpsUpdateTimer > 0.5) {
-    gameState.gui.fpsDisplay.textString = Math.floor(frames / fpsUpdateTimer).toString();
+    gameState.gui.fpsDisplay.textString = Math.floor(
+      frames / fpsUpdateTimer
+    ).toString();
     frames = 0;
     fpsUpdateTimer = 0.0;
   }

@@ -17,7 +17,7 @@ import { Howler, Howl } from "howler";
 import { Factories } from "../Utils/Factories.js";
 
 export default class Cheese {
-  readonly position: vec3;
+  position: vec3;
   private mesh: GraphicsBundle;
   private readonly lightSource: PointLight;
   private readonly map: ProceduralMap;

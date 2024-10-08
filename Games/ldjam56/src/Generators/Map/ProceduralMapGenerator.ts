@@ -217,13 +217,20 @@ export default class ProceduralMap {
   focusRoom: vec2;
   physicsScene: ENGINE.PhysicsScene;
   wallsPhysicsScene: ENGINE.PhysicsScene;
+  private finalLevel: boolean = false;
 
-  constructor(scene: ENGINE.Scene, physicsScene: ENGINE.PhysicsScene) {
+  constructor(
+    scene: ENGINE.Scene,
+    physicsScene: ENGINE.PhysicsScene,
+    level: number,
+    finalLevel: boolean
+  ) {
     this.scene = scene;
     this.physicsScene = physicsScene;
     this.wallsPhysicsScene = new ENGINE.PhysicsScene();
     vec3.zero(this.wallsPhysicsScene.gravity);
     this.instancedMeshes = new Map<string, ENGINE.GraphicsBundle>();
+    this.finalLevel = finalLevel;
 
     // 8 objects for walls and corners of the room that the player is currently in
     // Starts top left and goes clockwise
@@ -259,16 +266,47 @@ export default class ProceduralMap {
     this.playerSpawnRoom = vec2.fromValues(0, 0);
 
     this.focusRoom = vec2.fromValues(-1.0, -1.0);
+    // Dont put goal next to a wall or it will make a hole into the ground
+    const mapLayout =
+      // `
+      // 11111111111111
+      // 11111111111111
+      // 11111116111111
+      // 20511111111111
+      // 20114111114012
+      // 11111111111111
+      // 11111111111111
+      // `;
+      `
+    A11111c11111dB
+    21101110111012
+    21441100444112
+    20500000004461
+    20114111114012
+    21111001111222
+    b22211C11222Da
+    `;
 
-    const mapLayout = `
-A11111c11111dB
-21101110111012
-21441100444112
-20500000004416
-20114111114012
-21111001111222
-b22211C11222Da
-`;
+    const mapLayout2 = `
+    000a11111111111111b
+    05001111d1111113111
+    11101e0100000E1111D
+    1120100101110112111
+    1C11100111610111121
+    1111100001110112111
+    1111F00000000f11111
+    1B112111121113111A1
+    11131112111c1111111
+    `;
+    // `
+    // 11111111111111
+    // 11111111111111
+    // 11111116111111
+    // 20511111111111
+    // 20114111114012
+    // 11111111111111
+    // 11111111111111
+    // `;
 
     // `
     // 00000000000000000
@@ -331,7 +369,12 @@ b22211C11222Da
 
     let columns = 0;
     let rowNr = 0;
-    for (let row of mapLayout.split("\n")) {
+
+    let currentMap = mapLayout;
+    if (level == 2) {
+      currentMap = mapLayout2;
+    }
+    for (let row of currentMap.split("\n")) {
       row = row.trim();
       if (row.length == 0) {
         continue;
@@ -487,10 +530,50 @@ b22211C11222Da
           )
         );
 
+        this.instancedMeshes.set(
+          "Assets/objs/dungeonPack/stairs.obj",
+          await Factories.createInstancedMesh(
+            scene,
+            "Assets/objs/dungeonPack/stairs.obj",
+            "Assets/Textures/dungeon_texture.png",
+            "CSS:rgb(0, 0, 0)"
+          )
+        );
+
         for (let column = 0; column < columns + 1; column++) {
           for (let row = 0; row < rows + 1; row++) {
             // Tile filling (floor or blocked)
             if (column < columns && row < rows) {
+              if (
+                !this.finalLevel &&
+                column * 2 + 1 == this.goalRoom[0] &&
+                row * 2 + 1 == this.goalRoom[1]
+              ) {
+                let mesh = this.instancedMeshes.get(
+                  "Assets/objs/dungeonPack/stairs.obj"
+                );
+
+                mesh.transform.position = vec3.clone(
+                  this.getRoomCenterWorldPos(this.goalRoom)
+                );
+                vec3.add(
+                  mesh.transform.position,
+                  mesh.transform.position,
+                  vec3.fromValues(5, -2, 0)
+                );
+
+                ENGINE.quat.fromEuler(mesh.transform.rotation, 0.0, -90, 0.0);
+                vec3.set(mesh.transform.scale, 2.5, -1, 2.5);
+                let matrix = ENGINE.mat4.create();
+                mesh.transform.calculateMatrices(
+                  matrix,
+                  mesh.transform.normalMatrix,
+                  true
+                );
+                mesh.modelMatrices.push(matrix);
+                continue;
+              }
+
               if (this.map[column * 2 + 1][row * 2 + 1] == 0) {
                 let mesh = this.instancedMeshes.get(
                   "Assets/objs/MyDungeon/Floor.obj"
