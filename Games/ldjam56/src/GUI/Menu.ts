@@ -78,45 +78,69 @@ export default class Menu {
     this.menuRendererDiv.getElement().appendChild(this.menuRenderer.domElement);
 
     this.menuRenderer.useVolumetric = true;
-    this.menuRenderer.setFogTexture("CSS:rgb(255, 255, 255)");
-    this.menuRenderer.setFogDensity(0.05);
+    this.menuRenderer.setFogTexture("Assets/Textures/Fog.png");
+    this.menuRenderer.setFogDensity(0.6);
 
     // Scene
     this.menuScene = new Scene(this.menuRenderer);
     this.menuScene.getDirectionalLight().ambientMultiplier = 0.0;
-    vec3.set(this.menuScene.getDirectionalLight().colour, 0.3216, 3.0, 0.5922);
+    vec3.set(this.menuScene.getDirectionalLight().colour, 0.3216, 0.7412, 0.5922);
     vec3.set(this.menuScene.getDirectionalLight().direction, 0.001, 1.0, 0.0);
 
-    this.menuScene.directionalLight.shadowCameraDistance = 100;
-    this.menuScene.directionalLight.lightProjectionBoxSideLength = 100;
+    this.menuRenderer.clearColour.r =
+    this.menuScene.getDirectionalLight().colour[0] *
+    (0.44 * this.menuScene.getDirectionalLight().ambientMultiplier);
+  this.menuRenderer.clearColour.g =
+    this.menuScene.getDirectionalLight().colour[1] *
+    (0.44 * this.menuScene.getDirectionalLight().ambientMultiplier);
+  this.menuRenderer.clearColour.b =
+    this.menuScene.getDirectionalLight().colour[2] *
+    (0.44 * this.menuScene.getDirectionalLight().ambientMultiplier);
+
+    this.menuScene.directionalLight.shadowCameraDistance = 50;
+    this.menuScene.directionalLight.lightProjectionBoxSideLength = 20;
+    this.menuScene.directionalLight
     vec3.zero(this.menuScene.directionalLight.shadowFocusPos);
 
     // Create a camera and set it's starting position
     this.menuCamera = new Camera();
-    this.menuCamera.setPosition(vec3.fromValues(2.0, 4.0, 4.0));
-    this.menuCamera.setDir(vec3.fromValues(0.0, -1.0, -1.0));
+    this.menuCamera.setPosition(vec3.fromValues(3.6, 6.0, 5.3));
+    this.menuCamera.setDir(vec3.fromValues(-0.2, -1.5, -1.0));
 
     let pl = this.menuScene.addNewPointLight();
     pl.castShadow = true;
-    vec3.set(pl.position, 1.0, 3.0, 2.0);
+    vec3.set(pl.position, 5.0, 5.0, 2.0);
+    vec3.set(pl.colour, 0.8, 0.8, 0.8);
     pl.setShadowBufferResolution(4096);
 
     Factories.createMesh(
       this.menuScene, 
-      "Assets/objs/dungeonPack/floor_tile_extralarge_grates_open.obj",
+      "Assets/objs/MenuBackdrop.obj",
       vec3.create(),
-      vec3.fromValues(1.0, 1.0, 1.0),
+      vec3.fromValues(2.0, 2.0, 2.0),
       "Assets/Textures/dungeon_texture.png",
       "CSS:rgb(0, 0, 0)",
     ).then((mesh) => {
+      quat.fromEuler(mesh.transform.rotation, 0.0, -90.0, 0.0);
+    });
 
+    Factories.createMesh(
+      this.menuScene, 
+      "Assets/objs/Cheese.obj",
+      vec3.fromValues(0.8, 0.4, 0.5),
+      vec3.fromValues(0.4, 0.4, 0.4),
+      "CSS:rgb(255,204,51)",
+      "CSS:rgb(80, 80, 80)",
+    ).then((mesh) => {
+      quat.fromEuler(mesh.transform.rotation, 0.0, -60.0, 0.0);
+      vec3.set(mesh.emissionColor, 0.5, 0.25, 0.0);
     });
 
     this.mouse = null;
     this.menuScene.addNewAnimatedMesh("Assets/gltf/Mouse/mouse.gltf", "Assets/gltf/Mouse/Feldmaus_Diffuse.png", "Assets/gltf/Mouse/Feldmaus_Gloss.png").then((mesh) => {
       this.mouse = mesh;
       quat.fromEuler(this.mouse.transform.rotation, 0.0, 180, 0.0);
-      vec3.set(this.mouse.transform.position, 0.0, 0.2, 0.0);
+      vec3.set(this.mouse.transform.position, 0.0, 0.4, 0.0);
     });
 
 

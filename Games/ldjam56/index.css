@@ -28,8 +28,8 @@ canvas {
 .titleText {
   font-size: 100px;
   font-family: inherit;
-  color: #ffffff;
-  text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+  color: rgb(255, 200, 0);
+  text-shadow: -2px 0 rgb(203, 128, 14), 0 2px rgb(203, 128, 14), 2px 0 rgb(203, 128, 14), 0 -2px rgb(203, 128, 14);
   font-weight: bold;
 }
 

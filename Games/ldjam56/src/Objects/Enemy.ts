@@ -253,46 +253,44 @@ export default class Enemy {
 
     lookForPlayer(dt: number) {
         this.time += dt;
-        if (this.time % 2 < 0.5) {
-            if (this.player.physicsObj != undefined) {
-                const distance = vec3.distance(
-                    this.physicsObj.transform.position,
-                    this.player.physicsObj.transform.position
+        if (this.player.physicsObj != undefined) {
+            const distance = vec3.distance(
+                this.physicsObj.transform.position,
+                this.player.physicsObj.transform.position
+            );
+            if (distance < 50) {
+                let playerDir = vec3.sub(
+                    vec3.create(),
+                    this.player.physicsObj.transform.position,
+                    this.physicsObj.transform.position
                 );
-                if (distance < 10) {
-                    let playerDir = vec3.sub(
-                        vec3.create(),
-                        this.player.physicsObj.transform.position,
-                        this.physicsObj.transform.position
-                    );
-                    playerDir[1] = 0.0;
-                    vec3.normalize(playerDir, playerDir);
+                playerDir[1] = 0.0;
+                vec3.normalize(playerDir, playerDir);
 
-                    if (
-                        vec3.dot(
-                            vec3.normalize(
-                                vec3.create(),
-                                this.physicsObj.velocity
-                            ),
-                            playerDir
-                        ) > 0.75
-                    ) {
-                        let ray = new Ray();
-                        ray.setStartAndDir(
-                            vec3.add(
-                                vec3.create(),
-                                this.physicsObj.transform.position,
-                                vec3.fromValues(0.0, 0.2, 0.0)
-                            ),
-                            playerDir
-                        );
-                        let hitObject = this.map.wallsPhysicsScene.doRayCast(
-                            ray,
-                            [this.physicsObj]
-                        ).object;
-                        if (hitObject == this.player.physicsObj) {
-                            console.log("hit player");
-                        }
+                if (
+                    vec3.dot(
+                        vec3.normalize(
+                            vec3.create(),
+                            this.physicsObj.velocity
+                        ),
+                        playerDir
+                    ) > 0.75
+                ) {
+                    let ray = new Ray();
+                    ray.setStartAndDir(
+                        vec3.add(
+                            vec3.create(),
+                            this.physicsObj.transform.position,
+                            vec3.fromValues(0.0, 0.2, 0.0)
+                        ),
+                        playerDir
+                    );
+                    let hitObject = this.map.wallsPhysicsScene.doRayCast(
+                        ray,
+                        [this.physicsObj]
+                    ).object;
+                    if (hitObject == this.player.physicsObj) {
+                        console.log("hit player");
                     }
                 }
             }
