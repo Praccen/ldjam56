@@ -14,18 +14,20 @@ import { GetCookie, SetCookie } from "../Utils/WebUtils.js";
 import {Howler} from "howler";
 import { vec3 } from "gl-matrix";
 import { Factories } from "../Utils/Factories.js";
-import { title } from "process";
 
 export default class Menu {
   private guiRenderer: GUIRenderer;
   private menuRendererDiv: Div;
   private menuDiv: Div;
   private optionsDiv: Div;
+  private gameOverDiv: Div;
+  private gameWonDiv: Div;
   private menuRenderer: Renderer3D;
   private menuScene: Scene;
   private menuCamera: Camera;
 
   private mouse: AnimatedGraphicsBundle;
+  private mouseAnimationIndex: number = 1;
 
   enabled: boolean;
 
@@ -44,34 +46,18 @@ export default class Menu {
     this.menuRendererDiv.getElement().style.zIndex = "0";
     this.menuRendererDiv.getElement().style.overflow = "hidden";
 
-
-    this.menuDiv = guiRenderer.getNewDiv(this.menuRendererDiv);
-    this.menuDiv.ignoreEngineModifiers = true;
-    this.menuDiv.getElement().style.backgroundColor = "#00000050";
-    this.menuDiv.getElement().style.top = "0%";
-    this.menuDiv.getElement().style.height = "100%";
-    this.menuDiv.getElement().style.left = "0%";
-    this.menuDiv.getElement().style.width = "100%";
-
-    this.menuDiv.getElement().style.position = "absolute";
-    this.menuDiv.getElement().style.zIndex = "4";
-    this.menuDiv.getElement().style.overflowX = "hidden";
-    this.menuDiv.getElement().style.overflowY = "auto";
+    // Divs
+    this.menuDiv = this.createDiv(this.menuRendererDiv);
     this.menuDiv.setHidden(false);
     
-    this.optionsDiv = guiRenderer.getNewDiv(this.menuRendererDiv);
-    this.optionsDiv.ignoreEngineModifiers = true;
-    this.optionsDiv.getElement().style.backgroundColor = "#00000050";
-    this.optionsDiv.getElement().style.top = "0%";
-    this.optionsDiv.getElement().style.height = "100%";
-    this.optionsDiv.getElement().style.left = "0%";
-    this.optionsDiv.getElement().style.width = "100%";
-
-    this.optionsDiv.getElement().style.position = "absolute";
-    this.optionsDiv.getElement().style.zIndex = "4";
-    this.optionsDiv.getElement().style.overflowX = "hidden";
-    this.optionsDiv.getElement().style.overflowY = "auto";
+    this.optionsDiv = this.createDiv(this.menuRendererDiv);
     this.optionsDiv.setHidden(true);
+
+    this.gameOverDiv = this.createDiv(this.menuRendererDiv);
+    this.gameOverDiv.setHidden(true);
+
+    this.gameWonDiv = this.createDiv(this.menuRendererDiv);
+    this.gameWonDiv.setHidden(true);
 
     // Renderer
     this.menuRenderer = new Renderer3D();
@@ -111,7 +97,7 @@ export default class Menu {
     pl.castShadow = true;
     vec3.set(pl.position, 5.0, 5.0, 2.0);
     vec3.set(pl.colour, 0.8, 0.8, 0.8);
-    pl.setShadowBufferResolution(4096);
+    pl.setShadowBufferResolution(2048);
 
     Factories.createMesh(
       this.menuScene, 
@@ -143,17 +129,8 @@ export default class Menu {
       vec3.set(this.mouse.transform.position, 0.0, 0.4, 0.0);
     });
 
-
     // Main menu
-    let titleText = this.guiRenderer.getNew2DText(this.menuDiv);
-    titleText.ignoreEngineModifiers = true;
-    titleText.textString = "Cheddar Chase";
-    titleText.getElement().className = "titleText";
-    titleText.getElement().style.top = "100px";
-    titleText.getElement().style.position = "relative";
-    titleText.getElement().style.margin = "auto";
-    titleText.getElement().style.display = "block"; 
-    titleText.getElement().style.marginTop = "40px";
+    this.createText(this.menuDiv, "Cheddar Chase", "titleText");
     this.createButton(this.menuDiv, "Start game", (ev) => {self.toggle()});
     this.createButton(this.menuDiv, "Options", (ev) => {self.menuDiv.setHidden(true); self.optionsDiv.setHidden(false)});
     this.createButton(this.menuDiv, "Fullscreen", (ev) => {document.getElementById("game").requestFullscreen();})
@@ -200,7 +177,48 @@ export default class Menu {
       "volumetricBlur"
     );
 
+    // Game over menu
+    this.createText(this.gameOverDiv, "You were spotted by a rat", "gameOverText");
+    this.createButton(this.gameOverDiv, "Back to main menu", (ev) => {self.goToMainMenu();});
+
+    // Game won menu
+    this.createText(this.gameWonDiv, "You stole the cheese, good job!", "titleText");
+    this.createButton(this.gameWonDiv, "Back to main menu", (ev) => {self.goToMainMenu();});
+
     this.enabled = true;
+  }
+
+  private createDiv(menuRendererDiv: Div): Div {
+    let div = this.guiRenderer.getNewDiv(menuRendererDiv);
+    div.ignoreEngineModifiers = true;
+    div.getElement().style.backgroundColor = "#00000050";
+    div.getElement().style.top = "0%";
+    div.getElement().style.height = "100%";
+    div.getElement().style.left = "0%";
+    div.getElement().style.width = "100%";
+
+    div.getElement().style.position = "absolute";
+    div.getElement().style.zIndex = "4";
+    div.getElement().style.overflowX = "hidden";
+    div.getElement().style.overflowY = "auto";
+    return div;
+  }
+
+  private createText(parentDiv: Div, text: string, className?: string, fontSize?: number) {
+    let textObject = this.guiRenderer.getNew2DText(parentDiv);
+    textObject.ignoreEngineModifiers = true;
+    textObject.textString = text;
+    if (className != undefined) {
+      textObject.getElement().className = className;
+    }
+    if (fontSize != undefined) {
+      textObject.getElement().style.fontSize = fontSize + "px";
+    }
+    textObject.getElement().style.top = "100px";
+    textObject.getElement().style.position = "relative";
+    textObject.getElement().style.margin = "auto";
+    textObject.getElement().style.display = "block"; 
+    textObject.getElement().style.marginTop = "40px";
   }
 
   private createButton(parentDiv: Div, text: string, onClickFn: (this: HTMLButtonElement, ev: MouseEvent) => any): Button {
@@ -276,6 +294,40 @@ export default class Menu {
     this.enabled = !this.menuRendererDiv.getHidden();
   }
 
+  goToMainMenu() {
+    this.menuDiv.setHidden(false);
+    this.optionsDiv.setHidden(true);
+    this.gameOverDiv.setHidden(true);
+    this.gameWonDiv.setHidden(true);
+  }
+
+  goToGameOverScreen() {
+    this.menuDiv.setHidden(true);
+    this.optionsDiv.setHidden(true);
+    this.gameOverDiv.setHidden(false);
+    this.gameWonDiv.setHidden(true);
+    this.mouseAnimationIndex = 0;
+
+    if (this.mouse != undefined) {
+      quat.fromEuler(this.mouse.transform.rotation, 0.0, 0.0, 0.0);
+      vec3.set(this.mouse.transform.position, -1.7, 0.4, -1.0);
+    }
+    
+  }
+
+  goToGameWonScreen() {
+    this.menuDiv.setHidden(true);
+    this.optionsDiv.setHidden(true);
+    this.gameOverDiv.setHidden(true);
+    this.gameWonDiv.setHidden(false);
+    this.mouseAnimationIndex = 3;
+
+    if (this.mouse != undefined) {
+      quat.fromEuler(this.mouse.transform.rotation, 0.0, 180.0, 0.0);
+      vec3.set(this.mouse.transform.position, 0.0, 0.4, -0.5);
+    }
+  }
+
   resize(width: number, height: number) {
     this.menuRenderer.setSize(width, height, true);
     this.menuCamera.setAspectRatio(width / height);
@@ -287,7 +339,7 @@ export default class Menu {
 
   preRenderingUpdate(dt: number) {
     if (this.mouse != undefined) {
-      this.mouse.animate(1, dt);
+      this.mouse.animate(this.mouseAnimationIndex, dt);
     }
   }
 

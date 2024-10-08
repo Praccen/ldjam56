@@ -53,7 +53,7 @@ export default class Cheese {
     Factories.createMesh(
       scene,
       "Assets/objs/Cheese.obj",
-      vec3.clone(this.position),
+      this.position,
       vec3.fromValues(1.0, 1.0, 1.0),
       "CSS:rgb(255,204,51)",
       "CSS:rgb(0, 0, 0)"

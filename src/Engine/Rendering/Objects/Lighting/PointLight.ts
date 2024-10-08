@@ -38,12 +38,12 @@ export default class PointLight {
       this.gl.DEPTH_COMPONENT,
       this.gl.FLOAT
     );
-    this.pointShadowDepthMap.setTextureData(null, 1024, 1024);
+    this.pointShadowDepthMap.setTextureData(null, 501, 501);
 
     this.pointShadowBuffer = new Framebuffer(
       this.gl,
-      1024,
-      1024,
+      501,
+      501,
       [],
       this.pointShadowDepthMap
     );

@@ -8,7 +8,6 @@ import PointShadowSkeletalAnimationShaderProgram from "../../ShaderPrograms/Shad
 
 export default class PointShadowRenderPass {
   private gl: WebGL2RenderingContext;
-  private shadowResolution: number;
 
   private pointShadowShaderProgram: PointShadowShaderProgram;
   private pointShadowInstancedShaderProgram: PointShadowInstancedShaderProgram;
@@ -27,19 +26,12 @@ export default class PointShadowRenderPass {
     this.pointShadowSkeletalAnimationShaderProgram =
       pointShadowSkeletalAnimationShaderProgram;
     this.gl = gl;
-    this.shadowResolution = 501;
-  }
-
-  setShadowMappingResolution(res: number) {
-    this.shadowResolution = res;
   }
 
   draw(scene: Scene) {
     this.gl.enable(this.gl.DEPTH_TEST);
     this.gl.enable(this.gl.CULL_FACE);
     this.gl.cullFace(this.gl.FRONT);
-
-    this.gl.viewport(0, 0, this.shadowResolution, this.shadowResolution);
 
     let pointLightCamera = new Camera();
     pointLightCamera.setFOV(90);
@@ -74,12 +66,9 @@ export default class PointShadowRenderPass {
 
         pointLightCamera.setPosition(pointLight.position);
 
+        
+        this.gl.viewport(0, 0, pointLight.pointShadowBuffer.getWidth(), pointLight.pointShadowBuffer.getHeight());
         pointLight.pointShadowBuffer.bind(this.gl.FRAMEBUFFER);
-        pointLight.pointShadowDepthMap.setTextureData(
-          null,
-          this.shadowResolution,
-          this.shadowResolution
-        ); // Make sure the textures are correct size. TODO: Is this super slow?
 
         for (let i = 0; i < directions.length; i++) {
           pointLightCamera.setDir(directions[i]);
