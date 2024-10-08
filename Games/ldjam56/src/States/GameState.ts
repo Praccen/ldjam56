@@ -15,7 +15,10 @@ export default class GameState {
   camera: Camera;
   gui: GUI;
   gameOver: boolean = false;
+  playerSpottedByEnemy: Enemy = null;
   gameWon: boolean = false;
+  private cameraSlerpStartPosition: vec3 = vec3.create();
+  private cameraSlerpStartDir: vec3 = vec3.create();
 
   private pitch: number = -30.0;
   private jaw: number = 210.0;
@@ -59,6 +62,7 @@ export default class GameState {
   reset() {
     this.gameOver = false;
     this.gameWon = false;
+    this.playerSpottedByEnemy = null;
 
     // Create a scene. It will automatically have a directional light, so let's set the ambient multiplier for it.
     this.scene = new Scene(this.renderer);
@@ -121,6 +125,17 @@ export default class GameState {
         this
       );
       this.enemies.push(enemy);
+    }
+  }
+
+  setupSpottedAnimation(progress: number) {
+    this.gui.mapDisplay.setHidden(true);
+    if (this.playerSpottedByEnemy != undefined) {
+      let targetDir = vec3.normalize(vec3.create(), vec3.sub(vec3.create(), this.player.physicsObj.transform.position, this.camera.getPosition()));
+      let targetPos = vec3.add(vec3.create(), this.playerSpottedByEnemy.physicsObj.transform.position, vec3.fromValues(0.0, 2.5, 0.0));
+      vec3.scaleAndAdd(targetPos, targetPos, targetDir, -1.5);
+      this.camera.setPosition(vec3.lerp(vec3.create(), this.cameraSlerpStartPosition, targetPos, progress));
+      this.camera.setDir(vec3.lerp(vec3.create(), this.cameraSlerpStartDir, targetDir, progress));
     }
   }
 
@@ -312,6 +327,9 @@ export default class GameState {
     for (const enemy of this.enemies) {
       enemy.preRenderingUpdate(dt);
     }
+
+    vec3.copy(this.cameraSlerpStartPosition, this.camera.getPosition());
+    vec3.copy(this.cameraSlerpStartDir, this.camera.getDir());
   }
 
   draw() {

@@ -19,7 +19,7 @@ import { Howler, Howl } from "howler";
 import { Factories } from "../Utils/Factories.js";
 import GameState from "../States/GameState.js";
 
-const playerSpottingDistance: number = 20.0;
+const playerSpottingDistance: number = 30.0;
 
 export default class Enemy {
     private readonly physicsScene: PhysicsScene;
@@ -298,6 +298,7 @@ export default class Enemy {
                     if (hitObject.physicsObjectId === this.player.physicsObj.physicsObjectId) {
                         // console.log("hit player");
                         this.gameState.gameOver = true;
+                        this.gameState.playerSpottedByEnemy = this;
                     }
                 }
             }

@@ -32,6 +32,8 @@ themeMusic.play();
 let gameState = new GameState(guiRenderer);
 let menu = new Menu(guiRenderer, gameState.renderer);
 
+let gameWonTimer = 0.0;
+
 /**
  * Our update function, this will run every tick-
  * @param dt - time elapsed since last tick.
@@ -42,16 +44,24 @@ function update(dt: number) {
     return;
   }
 
-  gameState.update(dt);
   if (gameState.gameWon) {
     menu.toggle();
     menu.goToGameWonScreen();
     gameState.reset();
   }
-  if (gameState.gameOver) {
-    menu.toggle();
-    menu.goToGameOverScreen();
-    gameState.reset();
+  else if (gameState.gameOver) {
+    gameWonTimer+= dt;
+    gameState.setupSpottedAnimation(Math.min(gameWonTimer / 3.0, 1.0));
+
+    if (gameWonTimer >= 5.0) {
+      gameWonTimer = 0.0;
+      menu.toggle();
+      menu.goToGameOverScreen();
+      gameState.reset();
+    }
+  }
+  else {
+    gameState.update(dt);
   }
 }
 
@@ -66,6 +76,10 @@ function preRendereringUpdate(dt: number) {
     menu.preRenderingUpdate(dt);
     gameState.gui.gameGuiDiv.setHidden(true);
     gameState.renderer.domElement.hidden = true;
+    return;
+  }
+
+  if (gameState.gameWon || gameState.gameOver) {
     return;
   }
 
