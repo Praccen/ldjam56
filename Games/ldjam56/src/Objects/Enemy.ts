@@ -19,6 +19,8 @@ import { Howler, Howl } from "howler";
 import { Factories } from "../Utils/Factories.js";
 import GameState from "../States/GameState.js";
 
+const playerSpottingDistance: number = 20.0;
+
 export default class Enemy {
     private readonly physicsScene: PhysicsScene;
     private targetPos: vec3;
@@ -262,7 +264,7 @@ export default class Enemy {
                 this.physicsObj.transform.position,
                 this.player.physicsObj.transform.position
             );
-            if (distance < 20) {
+            if (distance < playerSpottingDistance) {
                 let playerDir = vec3.sub(
                     vec3.create(),
                     this.player.physicsObj.transform.position,

@@ -97,7 +97,7 @@ export default class Menu {
     pl.castShadow = true;
     vec3.set(pl.position, 5.0, 5.0, 2.0);
     vec3.set(pl.colour, 0.8, 0.8, 0.8);
-    pl.setShadowBufferResolution(4096);
+    pl.setShadowBufferResolution(2048);
 
     Factories.createMesh(
       this.menuScene, 

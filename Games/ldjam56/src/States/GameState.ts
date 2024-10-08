@@ -182,6 +182,7 @@ export default class GameState {
       }
       this.camera.setPosition(
         vec3.add(vec3.create(), vec3.fromValues(x, y, z), offsetVec)
+        // vec3.add(vec3.create(), this.player.physicsObj.transform.position, offsetVec)
       );
       this.camera.setDir(vec3.negate(vec3.create(), offsetVec));
       this.scene.getDirectionalLight().shadowFocusPos = vec3.fromValues(
