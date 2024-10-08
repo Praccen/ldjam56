@@ -2,13 +2,16 @@ import { mat4, vec3 } from "../../../../Engine";
 import Transform from "../../../Shared/Transform";
 import OBB from "../Shapes/OBB";
 
+
 export default class PhysicsObject {
+  static idCounter = 0;
   mass: number;
   frictionCoefficient: number;
   collisionCoefficient: number;
   velocity: vec3;
   impulse: vec3;
   force: vec3;
+  physicsObjectId: number;
 
   /**
    * True if this object never moves
@@ -30,6 +33,7 @@ export default class PhysicsObject {
   transform: Transform;
 
   constructor(transform?: Transform) {
+    this.physicsObjectId = PhysicsObject.idCounter++;
     this.mass = 1.0;
     this.frictionCoefficient = 0.0;
     this.collisionCoefficient = 0.0;

@@ -728,6 +728,7 @@ b22211C112222a
             }
           }
         }
+        this.wallsPhysicsScene.update(0.0);
       });
   }
 

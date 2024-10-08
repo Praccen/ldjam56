@@ -262,7 +262,7 @@ export default class Enemy {
                 this.physicsObj.transform.position,
                 this.player.physicsObj.transform.position
             );
-            if (distance < 10) {
+            if (distance < 20) {
                 let playerDir = vec3.sub(
                     vec3.create(),
                     this.player.physicsObj.transform.position,
@@ -293,7 +293,7 @@ export default class Enemy {
                         ray,
                         [this.physicsObj]
                     ).object;
-                    if (hitObject == this.player.physicsObj) {
+                    if (hitObject.physicsObjectId === this.player.physicsObj.physicsObjectId) {
                         console.log("hit player");
                         this.gameState.gameOver = true;
                     }
