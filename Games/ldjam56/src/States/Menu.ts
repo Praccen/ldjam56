@@ -14,7 +14,6 @@ import { GetCookie, SetCookie } from "../Utils/WebUtils.js";
 import {Howler} from "howler";
 import { vec3 } from "gl-matrix";
 import { Factories } from "../Utils/Factories.js";
-import { title } from "process";
 
 export default class Menu {
   private guiRenderer: GUIRenderer;
