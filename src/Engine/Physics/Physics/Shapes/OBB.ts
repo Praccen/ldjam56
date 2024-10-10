@@ -10,8 +10,6 @@ export default class OBB extends Shape {
 
   private transformMatrix: mat4;
   private inverseMatrix: mat4;
-  private verticesNeedsUpdate: boolean;
-  private normalsNeedsUpdate: boolean;
 
   constructor() {
     super();

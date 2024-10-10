@@ -75,11 +75,7 @@ export default class MeshStore {
   ): Promise<{ go: GraphicsObject; gltfObject: GltfObject }> {
     let mesh = this.animatedMeshMap.get(path);
     if (mesh) {
-      return new Promise<{ go: GraphicsObject; gltfObject: GltfObject }>(
-        (resolve, reject) => {
-          resolve(mesh);
-        }
-      );
+      return mesh;
     }
 
     this.animatedMeshMap.set(path, {
@@ -87,39 +83,42 @@ export default class MeshStore {
       gltfObject: null,
     });
     let newlyCreatedMesh = this.animatedMeshMap.get(path);
-    return this.parseGltfContent(path).then((gltfObject) => {
-      newlyCreatedMesh.gltfObject = gltfObject;
-      if (gltfObject.getNumMeshes() > 0) {
-        const data = gltfObject.getBufferData(0);
-        if (data.length > 0) {
-          newlyCreatedMesh.go.setVertexData(data[0].vertexData);
-          if (data[0].indexData.length > 0) {
-            newlyCreatedMesh.go.setIndexData(data[0].indexData);
-          }
-          
-          // // positions
-          // console.log("Positions");
-          // for (let i = 0; i < data[0].vertexData.length; i += 16) {
-          //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + ")");
-          // }
-
-          // // positions
-          // console.log("Weights");
-          // for (let i = 8; i < data[0].vertexData.length; i += 16) {
-          //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + " , " + data[0].vertexData[i + 3]+ ")");
-          // }
-
-          // // Joints
-          // console.log("Bone indices (joints)");
-          // for (let i = 12; i < data[0].vertexData.length; i += 16) {
-          //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + " , " + data[0].vertexData[i + 3]+ ")");
-          // }
-
-        }
-      }
-
+    const gltfObject = await this.parseGltfContent(path);
+    
+    if (!gltfObject.ok || gltfObject.getNumMeshes() == 0) {
+      console.error("glTF file " + path + " couldn't load one or more binary files");
       return newlyCreatedMesh;
-    });
+    }
+
+    newlyCreatedMesh.gltfObject = gltfObject;
+    const data = newlyCreatedMesh.gltfObject.getBufferData(0);
+    if (data.length > 0) {
+      newlyCreatedMesh.go.setVertexData(data[0].vertexData);
+      if (data[0].indexData.length > 0) {
+        newlyCreatedMesh.go.setIndexData(data[0].indexData);
+      }
+      
+      // // positions
+      // console.log("Positions");
+      // for (let i = 0; i < data[0].vertexData.length; i += 16) {
+      //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + ")");
+      // }
+
+      // // positions
+      // console.log("Weights");
+      // for (let i = 8; i < data[0].vertexData.length; i += 16) {
+      //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + " , " + data[0].vertexData[i + 3]+ ")");
+      // }
+
+      // // Joints
+      // console.log("Bone indices (joints)");
+      // for (let i = 12; i < data[0].vertexData.length; i += 16) {
+      //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + " , " + data[0].vertexData[i + 3]+ ")");
+      // }
+
+    }
+
+    return newlyCreatedMesh;
   }
 
   private async parseObjContent(meshPath: string): Promise<Float32Array> {
@@ -414,18 +413,15 @@ export default class MeshStore {
     let gltfContent = await response.json();
 
     const baseURL = new URL(meshPath, location.href);
+    
     gltfContent.buffers = await Promise.all(
       gltfContent.buffers.map(async (buffer) => {
         const url = new URL(buffer.uri, baseURL.href);
         const binResponse = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`could not load: ${url}`);
-        }
         return await binResponse.arrayBuffer();
       })
     );
 
-    const gltfObject = new GltfObject(gltfContent);
-    return gltfObject;
+    return new GltfObject(gltfContent);
   }
 }

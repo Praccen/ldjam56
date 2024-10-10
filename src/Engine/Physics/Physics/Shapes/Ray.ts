@@ -11,6 +11,8 @@ export default class Ray extends Shape {
     this.start = vec3.create();
     this.dir = vec3.fromValues(0.0, 0.0, 1.0);
     this.inverseMatrix = mat4.create();
+
+    this.verticesNeedsUpdate = true; // Leave it always as true to trigger octree check when recalculating
   }
 
   setStart(start: ReadonlyVec3) {

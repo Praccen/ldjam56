@@ -240,23 +240,6 @@ export default class Enemy {
         return forward;
     }
 
-    updateLightPos() {
-        if (this.lightSource != undefined) {
-            let forwardDirection = this.getCurrentForwardDirection();
-
-            const lightOffsetDistance = 2.0;
-            let lightPosition = vec3.scaleAndAdd(
-                vec3.create(),
-                this.physicsObj.transform.position,
-                forwardDirection,
-                lightOffsetDistance
-            );
-            vec3.add(lightPosition, lightPosition, vec3.fromValues(0, 1, 0));
-
-            vec3.copy(this.lightSource.position, lightPosition);
-        }
-    }
-
     lookForPlayer(dt: number) {
         this.time += dt;
         if (this.player.physicsObj != undefined) {
@@ -291,11 +274,11 @@ export default class Enemy {
                         ),
                         playerDir
                     );
-                    let hitObject = this.map.wallsPhysicsScene.doRayCast(
+                    let hitObject = this.physicsScene.doRayCast(
                         ray,
                         [this.physicsObj]
                     ).object;
-                    if (hitObject.physicsObjectId === this.player.physicsObj.physicsObjectId) {
+                    if (hitObject != undefined && hitObject.physicsObjectId === this.player.physicsObj.physicsObjectId) {
                         // console.log("hit player");
                         this.gameState.gameOver = true;
                         this.gameState.playerSpottedByEnemy = this;

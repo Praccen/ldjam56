@@ -368,6 +368,7 @@ class GltfAnimation {
 }
 
 export default class GltfObject {
+  ok: boolean;
   gltfJsonContent: any;
   nodes: GltfNode[];
   nodeNameToIndexMap: Map<string, number>;
@@ -376,6 +377,8 @@ export default class GltfObject {
   meshes: GltfMesh[];
   skins: GltfSkin[];
   animations: GltfAnimation[];
+  // TODO: Add support for scenes
+  // TODO: Go scene->node->mesh and skin combo. Instead of hardcoding just using mesh 0 all the time.
 
   constructor(gltfJsonContent: any) {
     this.gltfJsonContent = gltfJsonContent;
@@ -438,11 +441,28 @@ export default class GltfObject {
       }
     }
 
+    this.ok = true;
+    for (const accessor of this.accessors) {
+      if (!this.checkBufferAccessorIntegrety(accessor)) {
+        this.ok = false;
+        break;
+      }
+    }
+
     // console.log(this.nodes.length);
   }
 
   getNumMeshes(): number {
     return this.meshes.length;
+  }
+
+  private checkBufferAccessorIntegrety(accessor: GltfAccessor): boolean {
+    const bufferView =
+      this.bufferViews[accessor.bufferView];
+    let buffer = bufferView.buffer;
+    let offset = bufferView.byteOffset + accessor.byteOffset;
+
+    return this.gltfJsonContent.buffers[buffer].byteLength >= bufferView.byteLength - offset;
   }
 
   private getBufferInfoForAccessor(accessor: GltfAccessor):{
@@ -536,16 +556,10 @@ export default class GltfObject {
 
       numberOfVertices = count;
 
-      if (primitive.indices < 0) {
-        continue;
-      }
-
-      numberOfIndices += this.accessors[primitive.indices].count;
-
       let bufferIndex =
         buffers.push({
           vertexData: new Float32Array(numberOfVertices * 16),
-          indexData: new Int32Array(numberOfIndices),
+          indexData: null,
         }) - 1;
 
       let positionsBufferInfo = this.getBufferInfoFromAttribute(
@@ -611,7 +625,7 @@ export default class GltfObject {
         stride = 4;
         for (let j = 0; j < stride; j++) {
           if (weightsBufferInfo == undefined) {
-            buffers[bufferIndex].vertexData[i * 16 + o] = 0.0;
+            buffers[bufferIndex].vertexData[i * 16 + o] = 1.0;
           }
           else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
@@ -633,6 +647,14 @@ export default class GltfObject {
         }
       }
 
+      if (primitive.indices < 0) {
+        continue;
+      }
+
+      numberOfIndices += this.accessors[primitive.indices].count;
+      
+      buffers[bufferIndex].indexData = new Int32Array(numberOfIndices);
+
       let indicesBufferInfo = this.getBufferInfoForAccessor(this.accessors[primitive.indices]);
       for (let i = 0; i < numberOfIndices; i++) {
         buffers[bufferIndex].indexData[i] = indicesBufferInfo.data[i * (1 + indicesBufferInfo.stride)];
@@ -643,7 +665,7 @@ export default class GltfObject {
 
   getBindPose(skinIdx: number): Array<mat4> {
     if (skinIdx >= this.skins.length) {
-      return null;
+      return [mat4.create()];
     }
 
     let inverseBindMatricesBufferInfo =
@@ -678,14 +700,21 @@ export default class GltfObject {
   }
 
   getBoneMatrices(skinIdx: number): Array<mat4> {
+    let boneMatrices = new Array<mat4>();
+    if (this.skins.length == 0) { 
+      // No skins available, use only one identity matrix
+      boneMatrices.push(mat4.create());
+    }
+
     for (const node of this.nodes) {
       node.transform.calculateAnimationMatrix();
     }
 
-    let boneMatrices = new Array<mat4>();
+    if (skinIdx >= this.skins.length) {
+      return boneMatrices;
+    }
+
     for (const joint of this.skins[skinIdx].joints) {
-    // for (let i = this.skins[skinIdx].joints.length - 1; i >= 0; i--) {
-    //   const joint = this.skins[skinIdx].joints[i];
       boneMatrices.unshift(this.nodes[joint].transform.matrix);
     }
 

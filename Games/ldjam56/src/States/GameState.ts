@@ -118,7 +118,6 @@ export default class GameState {
     this.player = new Player(
       this.scene,
       this.physicsScene,
-      this.map.wallsPhysicsScene,
       playerSpawnRoom,
       playerPointLight
     );
@@ -192,7 +191,7 @@ export default class GameState {
     }
 
     // Update physics
-    this.physicsScene.update(dt);
+    this.physicsScene.update(dt, false); // Don't update static objects
     if (this.level == this.finalLevel) {
       this.cheese.update(dt);
       this.cheese.position = this.map.getRoomCenterWorldPos(

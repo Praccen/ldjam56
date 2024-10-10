@@ -136,7 +136,7 @@ export module IntersectionTester {
         vec3.create(),
         maxDistance
       );
-      if (dist < closestHit) {
+      if (dist < closestHit && dist < maxDistance) {
         closestHit = dist;
         maxDistance = closestHit;
 

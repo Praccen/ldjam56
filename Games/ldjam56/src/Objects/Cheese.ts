@@ -60,6 +60,7 @@ export default class Cheese {
     ).then((mesh) => {
       this.mesh = mesh;
       mesh.transform.origin[1] = 1.0;
+      vec3.set(mesh.emissionColor, 0.5, 0.25, 0.0);
     });
   }
 
@@ -81,7 +82,7 @@ export default class Cheese {
       this.lightSource.position = vec3.add(
         vec3.create(),
         this.position,
-        vec3.fromValues(0, 1.0, 0)
+        vec3.fromValues(0, 3.0, 0)
       );
     }
   }

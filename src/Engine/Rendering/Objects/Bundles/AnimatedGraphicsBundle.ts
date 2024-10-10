@@ -27,7 +27,7 @@ export default class AnimatedGraphicsBundle extends GraphicsBundle {
 
   animate(animationIndex: number, dt: number, lowerBound: number = 0.0, upperBound?: number): number {
     if (this.graphicsObjectAndGltfObject.gltfObject == undefined) {
-      return;
+      return -1;
     }
 
     this.animationTimer += dt;
@@ -57,6 +57,10 @@ export default class AnimatedGraphicsBundle extends GraphicsBundle {
   }
 
   createBoneTexture() {
+    if (this.boneMatrices == undefined) {
+      this.animate(0, 0);
+    }
+
     if (this.boneMatrices == undefined) {
       return;
     }

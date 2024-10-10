@@ -8,12 +8,13 @@ export default defineConfig((options) => ({
   format: ["esm"],
   name: "Game build",
   splitting: false,
+  treeshake: process.env.NODE_ENV === "production",
   outExtension({ format }) {
     return {
       js: `.${format}.js`,
     };
   },
-  clean: true,
+  clean: false,
   target: tsconfig.compilerOptions.target as "es2015",
   sourcemap: process.env.NODE_ENV !== "production",
   minify: process.env.NODE_ENV === "production",

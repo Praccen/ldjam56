@@ -6,7 +6,6 @@ import ParticleSpawner from "../Objects/InstancedGraphicsObjects/ParticleSpawner
 import { pointLightsToAllocate } from "./ShaderPrograms/DeferredRendering/LightingPassShaderProgram";
 import RendererBase from "./RendererBase";
 import AnimatedGraphicsBundle from "../Objects/Bundles/AnimatedGraphicsBundle";
-import { mat4, quat, vec3 } from "gl-matrix";
 
 export default class Scene {
   renderer: RendererBase;

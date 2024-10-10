@@ -11,10 +11,6 @@ export default class Triangle extends Shape {
   private transformedEdgeNormals: Array<vec3>;
 
   private transformMatrix: mat4;
-  private verticesNeedsUpdate: boolean;
-  private normalNeedsUpdate: boolean;
-  private edgesNeedsUpdate: boolean;
-  private edgeNormalsNeedsUpdate: boolean;
 
   constructor() {
     super();
@@ -25,10 +21,6 @@ export default class Triangle extends Shape {
     this.transformedEdges = new Array<vec3>();
     this.transformedEdgeNormals = new Array<vec3>();
     this.transformMatrix = mat4.create();
-    this.verticesNeedsUpdate = false;
-    this.normalNeedsUpdate = false;
-    this.edgesNeedsUpdate = false;
-    this.edgeNormalsNeedsUpdate = false;
   }
 
   setVertices(vertex1: vec3, vertex2: vec3, vertex3: vec3) {
@@ -47,14 +39,14 @@ export default class Triangle extends Shape {
     );
 
     this.verticesNeedsUpdate = true;
-    this.normalNeedsUpdate = true;
+    this.normalsNeedsUpdate = true;
     this.edgesNeedsUpdate = true;
     this.edgeNormalsNeedsUpdate = true;
   }
 
   setUpdateNeeded() {
     this.verticesNeedsUpdate = true;
-    this.normalNeedsUpdate = true;
+    this.normalsNeedsUpdate = true;
     this.edgesNeedsUpdate = true;
     this.edgeNormalsNeedsUpdate = true;
   }
@@ -62,7 +54,7 @@ export default class Triangle extends Shape {
   setTransformMatrix(matrix: mat4) {
     this.transformMatrix = matrix;
     this.verticesNeedsUpdate = true;
-    this.normalNeedsUpdate = true;
+    this.normalsNeedsUpdate = true;
     this.edgesNeedsUpdate = true;
     this.edgeNormalsNeedsUpdate = true;
   }
@@ -93,7 +85,7 @@ export default class Triangle extends Shape {
   }
 
   getTransformedNormals(): Array<vec3> {
-    if (this.normalNeedsUpdate) {
+    if (this.normalsNeedsUpdate) {
       this.transformedNormals.length = 0;
       this.transformedNormals.push(
         vec3.normalize(
@@ -106,7 +98,7 @@ export default class Triangle extends Shape {
         )
       );
 
-      this.normalNeedsUpdate = false;
+      this.normalsNeedsUpdate = false;
     }
     return this.transformedNormals;
   }
