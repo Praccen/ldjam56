@@ -1,5 +1,7 @@
-import { mat4, vec3 } from "gl-matrix";
+import { mat4, vec3, vec4 } from "gl-matrix";
 import ShaderProgram from "../../Renderer/ShaderPrograms/ShaderProgram";
+import OBB from "../../../Physics/Physics/Shapes/OBB";
+import Shape from "../../../Physics/Physics/Shapes/Shape";
 
 export default class DirectionalLight {
   direction: vec3;
@@ -10,6 +12,7 @@ export default class DirectionalLight {
   lightProjectionBoxSideLength: number;
 
   private lightSpaceMatrix: mat4;
+  private frustum: OBB;
 
   constructor() {
     this.direction = vec3.fromValues(0.0, -1.0, -0.5);
@@ -19,6 +22,8 @@ export default class DirectionalLight {
     this.shadowFocusPos = vec3.create();
     this.shadowCameraDistance = 40.0;
     this.lightSpaceMatrix = mat4.create();
+    this.frustum = new OBB();
+    this.frustum.setMinAndMaxVectors(vec3.fromValues(-1, -1, -1), vec3.fromValues(1, 1, 1));
   }
 
   bind(gl: WebGL2RenderingContext, shaderProgram: ShaderProgram) {
@@ -71,5 +76,10 @@ export default class DirectionalLight {
     ); // This will make it impossible to have exactly straight down shadows, but I'm fine with that
     mat4.mul(this.lightSpaceMatrix, this.lightSpaceMatrix, lightView);
     gl.uniformMatrix4fv(uniformLocation, false, this.lightSpaceMatrix);
+    this.frustum.setTransformMatrix(mat4.invert(mat4.create(), this.lightSpaceMatrix));
+  }
+
+  getFrustum(): Shape {
+    return this.frustum;
   }
 }

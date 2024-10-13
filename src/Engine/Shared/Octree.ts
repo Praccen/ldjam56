@@ -202,10 +202,10 @@ export class TreeNode {
     }
   }
 
-  recalculate(recalculatedContentArray: Array<OctreeNodeContentElement>) {
+  recalculate(recalculatedContentArray: Array<OctreeNodeContentElement>, performActionPerContent: (content: OctreeNodeContentElement) => void) {
     // Go to the bottom of the tree and pick up any content that no longer fits
     for (const child of this.children) {
-      child.recalculate(recalculatedContentArray);
+      child.recalculate(recalculatedContentArray, performActionPerContent);
     }
 
 		for (let i = 0; i < recalculatedContentArray.length; i++) {
@@ -218,6 +218,7 @@ export class TreeNode {
 
 		// Store the content that no longer fits in their node
 		for (let i = 0; i < this.content.length; i++) {
+			performActionPerContent(this.content[i]);
 			if (this.content[i].shape.getVertexUpdateNeeded() && !this.checkIfContains(this.content[i].shape)) {
 				recalculatedContentArray.push(this.content[i]);
 				this.content.splice(i, 1);
@@ -363,10 +364,10 @@ export default class Octree {
     this.baseNode.removeContent(searchPredicate);
   }
 
-  recalculate() {
+  recalculate(performActionPerContent: (content: OctreeNodeContentElement) => void = (content) => {}) {
     let recalculatedContentArray = new Array<OctreeNodeContentElement>(); // This will traverse the tree and pick up and place items that has moved
 		// const countBefore = this.baseNode.count();
-    this.baseNode.recalculate(recalculatedContentArray);
+    this.baseNode.recalculate(recalculatedContentArray, performActionPerContent);
 		// const countDuring = this.baseNode.count();
 		// if (countBefore != countDuring + recalculatedContentArray.length) {
 		// 	console.error("Recalculation of octree: Sum of content moved outside of tree and the content inside of tree did not result in the same number of items as was in the the tree before recalculation")

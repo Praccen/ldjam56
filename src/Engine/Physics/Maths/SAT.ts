@@ -1,7 +1,7 @@
 import { ReadonlyVec3, vec3 } from "gl-matrix";
 import Shape from "../Physics/Shapes/Shape";
 
-export module SAT {
+export namespace SAT {
   /**
    * Finds how big of an overlap there is between two sets of points along a vector.
    * @param overlapVector The vector to test along.

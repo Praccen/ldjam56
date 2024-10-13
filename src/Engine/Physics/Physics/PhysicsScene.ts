@@ -6,7 +6,7 @@ import { IntersectionTester } from "./IntersectionTester";
 import PhysicsObject from "./Objects/PhysicsObject";
 import Ray from "./Shapes/Ray";
 
-export class OctreeContentElement extends OctreeNodeContentElement {
+export class OctreePhysicsContentElement extends OctreeNodeContentElement {
   physicsObject: PhysicsObject;
   constructor(physicsObject: PhysicsObject) {
     super(physicsObject.boundingBox);
@@ -42,22 +42,22 @@ export default class PhysicsScene {
       length = this.physicsObjects.push(new PhysicsObject(transform));
     }
 
-    const octreeContent = new OctreeContentElement(this.physicsObjects[length - 1]);
+    const octreeContent = new OctreePhysicsContentElement(this.physicsObjects[length - 1]);
     this.octree.addContent(octreeContent);
     
     return this.physicsObjects[length - 1];
   }
 
   removePhysicsObject(physicsObject) {
-    this.octree.removeContent((value: OctreeContentElement) => {return physicsObject.physicsObjectId == value.physicsObject.physicsObjectId});
+    this.octree.removeContent((value: OctreePhysicsContentElement) => {return physicsObject.physicsObjectId == value.physicsObject.physicsObjectId});
 
     this.physicsObjects = this.physicsObjects.filter(
-      (o) => physicsObject.physicsObjectId !== o.physicsObjectId
+      (o) => {return physicsObject.physicsObjectId !== o.physicsObjectId}
     );
   }
 
   doRayCast(ray: Ray, ignoreObjectsList: PhysicsObject[] = [], maxDistance: number = Infinity): {distance: number, object: PhysicsObject} {
-    let octreeContentToTestAgainst = new Array<OctreeContentElement>();
+    let octreeContentToTestAgainst = new Array<OctreePhysicsContentElement>();
     this.octree.getContentForRayCast(ray, octreeContentToTestAgainst, maxDistance);
 
     let closestHit = Infinity;
@@ -109,7 +109,7 @@ export default class PhysicsScene {
 
       if (!physicsObject.isImmovable) {
         // Calculate collisions with other objects
-        let otherObjects = new Array<OctreeContentElement>();
+        let otherObjects = new Array<OctreePhysicsContentElement>();
         this.octree.getContentFromIntersection(physicsObject.boundingBox, otherObjects);
 
         for (let otherObject of otherObjects) {

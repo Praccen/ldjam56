@@ -6,6 +6,22 @@ import ParticleSpawner from "../Objects/InstancedGraphicsObjects/ParticleSpawner
 import { pointLightsToAllocate } from "./ShaderPrograms/DeferredRendering/LightingPassShaderProgram";
 import RendererBase from "./RendererBase";
 import AnimatedGraphicsBundle from "../Objects/Bundles/AnimatedGraphicsBundle";
+import Octree, { OctreeNodeContentElement } from "../../Shared/Octree";
+import OBB from "../../Physics/Physics/Shapes/OBB";
+import { vec3 } from "gl-matrix";
+import Shape from "../../Physics/Physics/Shapes/Shape";
+import { IntersectionTester } from "../../Physics/Physics/IntersectionTester";
+
+export class OctreeSceneContentElement extends OctreeNodeContentElement {
+  graphicsBundle: GraphicsBundle;
+  constructor(graphicsBundle: GraphicsBundle) {
+    let obb = new OBB();
+    obb.setMinAndMaxFromPointArray(graphicsBundle.graphicsObject.getVertexPositions());
+    obb.setTransformMatrix(graphicsBundle.transform.matrix);
+    super(obb);
+    this.graphicsBundle = graphicsBundle;
+  }
+}
 
 export default class Scene {
   renderer: RendererBase;
@@ -22,6 +38,9 @@ export default class Scene {
   pointLights: Array<PointLight>;
   // ----------------
 
+  stillOctree: Octree;
+  animatedOctree: Octree;
+
   constructor(renderer: RendererBase) {
     this.renderer = renderer;
 
@@ -36,6 +55,9 @@ export default class Scene {
     this.directionalLight = new DirectionalLight();
     this.pointLights = new Array<PointLight>();
     // ------------------
+
+    this.stillOctree = new Octree(vec3.fromValues(-10, -5, -10), vec3.fromValues(10, 15, 10), 5, 5);
+    this.animatedOctree = new Octree(vec3.fromValues(-10, -5, -10), vec3.fromValues(10, 15, 10), 5, 5);
   }
 
   async addNewMesh(
@@ -44,15 +66,16 @@ export default class Scene {
     specularPath: string
   ): Promise<GraphicsBundle> {
     return this.renderer.meshStore.getMesh(meshPath).then((mesh) => {
-      const length = this.graphicBundles.push(
+      const index = this.graphicBundles.push(
         new GraphicsBundle(
           this.renderer.gl,
           this.renderer.textureStore.getTexture(diffusePath),
           this.renderer.textureStore.getTexture(specularPath),
           mesh
         )
-      );
-      return this.graphicBundles[length - 1];
+      ) - 1;
+      this.stillOctree.addContent(new OctreeSceneContentElement(this.graphicBundles[index]));
+      return this.graphicBundles[index];
     });
   }
 
@@ -62,7 +85,7 @@ export default class Scene {
     specularPath: string
   ): Promise<GraphicsBundle> {
     return this.renderer.meshStore.getMesh(meshPath).then((mesh) => {
-      const length = this.graphicBundlesInstanced.push(
+      const index = this.graphicBundlesInstanced.push(
         new GraphicsBundle(
           this.renderer.gl,
           this.renderer.textureStore.getTexture(diffusePath),
@@ -71,8 +94,8 @@ export default class Scene {
           null,
           true
         )
-      );
-      return this.graphicBundlesInstanced[length - 1];
+      ) - 1;
+      return this.graphicBundlesInstanced[index];
     });
   }
 
@@ -92,6 +115,7 @@ export default class Scene {
           )
         ) - 1;
 
+      this.animatedOctree.addContent(new OctreeSceneContentElement(this.graphicBundlesAnimated[index]));
       return this.graphicBundlesAnimated[index];
     });
   }
@@ -122,8 +146,14 @@ export default class Scene {
     return this.directionalLight;
   }
 
-  deleteGraphicsBundle(object: GraphicsBundle) {
-    this.graphicBundles = this.graphicBundles.filter((o) => object !== o);
+  deleteGraphicsBundle(bundle: GraphicsBundle) {
+    this.stillOctree.removeContent((value: OctreeSceneContentElement) => {return value.graphicsBundle == bundle});
+    this.graphicBundles = this.graphicBundles.filter((value) => {return bundle !== value});
+  }
+
+  deleteAnimatedGraphicsBundle(bundle: AnimatedGraphicsBundle) {
+    this.animatedOctree.removeContent((value: OctreeSceneContentElement) => {return value.graphicsBundle == bundle});
+    this.graphicBundlesAnimated = this.graphicBundlesAnimated.filter((value) => {return bundle !== value});
   }
 
   deletePointLight(light: PointLight) {
@@ -131,21 +161,27 @@ export default class Scene {
   }
 
   calculateAllTransforms() {
-    for (let bundle of this.graphicBundles) {
+    for (const bundle of this.graphicBundles) {
       bundle.transform.calculateMatrices();
     }
-    for (let bundle of this.graphicBundlesAnimated) {
+    for (const bundle of this.graphicBundlesAnimated) {
       bundle.transform.calculateMatrices();
     }
   }
 
   renderScene(
     shaderProgram: ShaderProgram,
+    frustum: Shape,
     bindSpecialTextures: boolean = true
   ) {
-    for (let bundle of this.graphicBundles) {
-      bundle.graphicsObject.shaderProgram = shaderProgram;
-      bundle.draw(bindSpecialTextures);
+    const contentFromOctree = new Array<OctreeSceneContentElement>();
+    this.stillOctree.getContentFromIntersection(frustum, contentFromOctree);
+
+    for (const content of contentFromOctree) {
+      if (IntersectionTester.identifyIntersection([frustum], [content.shape])) {
+        content.graphicsBundle.graphicsObject.shaderProgram = shaderProgram;
+        content.graphicsBundle.draw(bindSpecialTextures);
+      }
     }
   }
 
@@ -153,7 +189,7 @@ export default class Scene {
     shaderProgram: ShaderProgram,
     bindSpecialTextures: boolean = true
   ) {
-    for (let bundle of this.graphicBundlesInstanced) {
+    for (const bundle of this.graphicBundlesInstanced) {
       bundle.graphicsObject.shaderProgram = shaderProgram;
       bundle.draw(bindSpecialTextures);
     }
@@ -165,16 +201,37 @@ export default class Scene {
     }
   }
 
+  updateOctrees() {
+    this.stillOctree.recalculate((content: OctreeSceneContentElement) => {
+      content.shape.setUpdateNeeded();
+    });
+    this.stillOctree.prune();
+
+    this.animatedOctree.recalculate((content: OctreeSceneContentElement) => {
+      content.shape.setUpdateNeeded();
+    });
+    this.animatedOctree.prune();
+  }
+
   renderSceneAnimated(
     shaderProgram: ShaderProgram,
+    frustum: Shape,
     bindSpecialTextures: boolean = true
   ) {
-    for (let bundle of this.graphicBundlesAnimated) {
-      bundle.graphicsObject.shaderProgram = shaderProgram;
-      bundle.draw(bindSpecialTextures);
+    const contentFromOctree = new Array<OctreeSceneContentElement>();
+    this.animatedOctree.getContentFromIntersection(frustum, contentFromOctree);
+
+    for (const content of contentFromOctree) {
+      if (IntersectionTester.identifyIntersection([frustum], [content.shape])) {
+        content.graphicsBundle.graphicsObject.shaderProgram = shaderProgram;
+        content.graphicsBundle.draw(bindSpecialTextures);
+      }
     }
   }
 
+  /**
+   * This is mostly for Renderer2D and isn't up to date with fancy things like octree etc.
+   */
   renderSceneInLayerOrder(
     shaderProgram: ShaderProgram,
     bindSpecialTextures: boolean = true

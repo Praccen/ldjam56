@@ -5,6 +5,7 @@ import { pointShadowsToAllocate } from "../../ShaderPrograms/DeferredRendering/L
 import PointShadowShaderProgram from "../../ShaderPrograms/ShadowMapping/PointShadowShaderProgram";
 import PointShadowInstancedShaderProgram from "../../ShaderPrograms/ShadowMapping/PointShadowInstancedShaderProgram";
 import PointShadowSkeletalAnimationShaderProgram from "../../ShaderPrograms/ShadowMapping/PointShadowSkeletalAnimationShaderProgram";
+import OBB from "../../../../Physics/Physics/Shapes/OBB";
 
 export default class PointShadowRenderPass {
   private gl: WebGL2RenderingContext;
@@ -36,7 +37,7 @@ export default class PointShadowRenderPass {
     let pointLightCamera = new Camera();
     pointLightCamera.setFOV(90);
     pointLightCamera.setAspectRatio(1);
-    pointLightCamera.setFarPlaneDistance(100.0);
+    pointLightCamera.setFarPlaneDistance(5.0);
 
     const directions = [
       vec3.fromValues(1.0, 0.0, 0.0),
@@ -66,7 +67,6 @@ export default class PointShadowRenderPass {
 
         pointLightCamera.setPosition(pointLight.position);
 
-        
         this.gl.viewport(0, 0, pointLight.pointShadowBuffer.getWidth(), pointLight.pointShadowBuffer.getHeight());
         pointLight.pointShadowBuffer.bind(this.gl.FRAMEBUFFER);
 
@@ -99,7 +99,7 @@ export default class PointShadowRenderPass {
           );
 
           //Render shadow pass
-          scene.renderScene(this.pointShadowShaderProgram, false);
+          scene.renderScene(this.pointShadowShaderProgram, pointLightCamera.getFrustum(), false);
 
           // Instanced
           this.pointShadowInstancedShaderProgram.use();
@@ -144,6 +144,7 @@ export default class PointShadowRenderPass {
           //Render shadow pass
           scene.renderSceneAnimated(
             this.pointShadowSkeletalAnimationShaderProgram,
+            pointLightCamera.getFrustum(),
             false
           );
         }

@@ -238,6 +238,7 @@ export default class Renderer3D extends RendererBase {
 
     scene.calculateAllTransforms();
     scene.updateAnimatedMeshes()
+    scene.updateOctrees();
 
     // ---- Shadow pass ----
     this.directionalShadowRenderPass.draw(scene);

@@ -5,6 +5,7 @@ import Scene from "../../Scene";
 import GeometryPassShaderProgram from "../../ShaderPrograms/DeferredRendering/GeometryPassShaderProgram";
 import GeometryPassInstancedShaderProgram from "../../ShaderPrograms/DeferredRendering/GeometryPassInstancedShaderProgram";
 import GeometryPassSkeletalAnimationShaderProgram from "../../ShaderPrograms/DeferredRendering/GeometryPassSkeletalAnimationShaderProgram";
+import OBB from "../../../../Physics/Physics/Shapes/OBB";
 
 export default class GeometryRenderPass {
   private gl: WebGL2RenderingContext;
@@ -80,7 +81,7 @@ export default class GeometryRenderPass {
       this.geometryPassShaderProgram.getUniformLocation("viewProjMatrix")[0]
     );
 
-    scene.renderScene(this.geometryPassShaderProgram, true);
+    scene.renderScene(this.geometryPassShaderProgram, camera.getFrustum(), true);
 
     this.geometryPassInstancedShaderProgram.use();
     camera.bindViewProjMatrix(
@@ -102,6 +103,7 @@ export default class GeometryRenderPass {
 
     scene.renderSceneAnimated(
       this.geometryPassSkeletalAnimationShaderProgram,
+      camera.getFrustum(),
       true
     );
   }

@@ -96,7 +96,7 @@ export default class DirectionalShadowRenderPass {
     );
 
     //Render shadow pass
-    scene.renderScene(this.directionalShadowShaderProgram, false);
+    scene.renderScene(this.directionalShadowShaderProgram, scene.directionalLight.getFrustum(), false);
 
     // Same stuff but instanced
     this.directionalShadowInstancedShaderProgram.use();
@@ -121,6 +121,7 @@ export default class DirectionalShadowRenderPass {
     );
     scene.renderSceneAnimated(
       this.directionalShadowSkeletalAnimationShaderProgram,
+      scene.directionalLight.getFrustum(),
       false
     );
 

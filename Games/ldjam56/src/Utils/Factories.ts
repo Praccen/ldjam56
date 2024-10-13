@@ -1,6 +1,6 @@
 import * as ENGINE from "praccen-web-engine";
 
-export module Factories {
+export namespace Factories {
   export function createMesh(
     scene: ENGINE.Scene,
     meshPath: string,

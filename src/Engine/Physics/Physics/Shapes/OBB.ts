@@ -77,6 +77,10 @@ export default class OBB extends Shape {
   }
 
   setMinAndMaxFromPointArray(pointArray: Array<vec3>) {
+    if (pointArray == undefined || pointArray.length == 0) {
+      return;
+    }
+
     this.originalNormals.length = 0;
     this.originalNormals.push(vec3.fromValues(1.0, 0.0, 0.0));
     this.originalNormals.push(vec3.fromValues(0.0, 1.0, 0.0));

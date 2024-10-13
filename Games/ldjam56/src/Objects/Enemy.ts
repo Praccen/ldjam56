@@ -358,7 +358,7 @@ export default class Enemy {
             this.updateTargetPos();
             this.move();
             this.avoidObstacleCollisions();
-            this.lookForPlayer(dt);
+            // this.lookForPlayer(dt);
         }
     }
 }
