@@ -9,23 +9,35 @@ export default class AnimatedGraphicsBundle extends GraphicsBundle {
   boneTexture: Texture;
   boneMatrices: mat4[];
   bindPose: mat4[];
-  graphicsObjectAndGltfObject: {go: GraphicsObject, gltfObject: GltfObject};
+  graphicsObjectAndGltfObject: { go: GraphicsObject; gltfObject: GltfObject };
   animationTimer: number;
 
   constructor(
     gl: WebGL2RenderingContext,
     diffuse: Texture,
     specular: Texture,
-    graphicsObjectAndGltfObject: {go: GraphicsObject, gltfObject: GltfObject},    
+    graphicsObjectAndGltfObject: { go: GraphicsObject; gltfObject: GltfObject },
     emissionMap?: Texture
   ) {
-    super(gl, diffuse, specular, graphicsObjectAndGltfObject.go, emissionMap, false);
+    super(
+      gl,
+      diffuse,
+      specular,
+      graphicsObjectAndGltfObject.go,
+      emissionMap,
+      false
+    );
     this.boneTexture = new Texture(gl, false, gl.RGBA32F, gl.RGBA, gl.FLOAT);
     this.graphicsObjectAndGltfObject = graphicsObjectAndGltfObject;
     this.animationTimer = 0.0;
   }
 
-  animate(animationIndex: number, dt: number, lowerBound: number = 0.0, upperBound?: number): number {
+  animate(
+    animationIndex: number,
+    dt: number,
+    lowerBound: number = 0.0,
+    upperBound?: number
+  ): number {
     if (this.graphicsObjectAndGltfObject.gltfObject == undefined) {
       return -1;
     }
@@ -33,24 +45,27 @@ export default class AnimatedGraphicsBundle extends GraphicsBundle {
     this.animationTimer += dt;
     let timeIdx = 0;
     if (upperBound != undefined) {
-      timeIdx = this.graphicsObjectAndGltfObject.gltfObject.animate(animationIndex, this.animationTimer % (upperBound - lowerBound) + lowerBound);
-    }
-    else {
-      timeIdx = this.graphicsObjectAndGltfObject.gltfObject.animate(animationIndex, this.animationTimer);
+      timeIdx = this.graphicsObjectAndGltfObject.gltfObject.animate(
+        animationIndex,
+        (this.animationTimer % (upperBound - lowerBound)) + lowerBound
+      );
+    } else {
+      timeIdx = this.graphicsObjectAndGltfObject.gltfObject.animate(
+        animationIndex,
+        this.animationTimer
+      );
     }
 
-    this.boneMatrices = this.graphicsObjectAndGltfObject.gltfObject.getBoneMatrices(0);
+    this.boneMatrices =
+      this.graphicsObjectAndGltfObject.gltfObject.getBoneMatrices(0);
 
     if (this.bindPose == undefined) {
-      this.bindPose = this.graphicsObjectAndGltfObject.gltfObject.getBindPose(0);
+      this.bindPose =
+        this.graphicsObjectAndGltfObject.gltfObject.getBindPose(0);
     }
 
     for (let i = 0; i < this.boneMatrices.length; i++) {
-      mat4.mul(
-        this.boneMatrices[i],
-        this.boneMatrices[i],
-        this.bindPose[i]
-      ); 
+      mat4.mul(this.boneMatrices[i], this.boneMatrices[i], this.bindPose[i]);
     }
 
     return timeIdx;

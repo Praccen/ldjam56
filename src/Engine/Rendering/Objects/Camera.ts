@@ -1,6 +1,8 @@
 import { ReadonlyVec3, mat4, vec3, vec2 } from "gl-matrix";
 import Shape from "../../Physics/Physics/Shapes/Shape";
 import OBB from "../../Physics/Physics/Shapes/OBB";
+import { vec4 } from "../../../Engine";
+import Frustum from "../../Physics/Physics/Shapes/Frustum";
 
 export default class Camera {
   private pos: vec3;
@@ -20,7 +22,7 @@ export default class Camera {
   private projectionMatrix: mat4;
   private viewProjMatrix: mat4;
 
-  private frustum: OBB;
+  private frustum: Frustum;
 
   constructor() {
     // ----View----
@@ -46,8 +48,7 @@ export default class Camera {
 
     this.viewProjMatrix = mat4.create();
 
-    this.frustum = new OBB();
-    this.frustum.setMinAndMaxVectors(vec3.fromValues(-1, -1, -1), vec3.fromValues(1, 1, 1)); // NDC coords, we will use the viewProjMatrix to transform this into the actual frustum
+    this.frustum = new Frustum();
   }
 
   getViewProjMatrix(): mat4 {
@@ -92,7 +93,7 @@ export default class Camera {
   }
 
   getFrustum(): Shape {
-    this.frustum.getTransformedVertices();
+    this.updateViewProjMatrix();
     return this.frustum;
   }
 
@@ -208,7 +209,11 @@ export default class Camera {
 
     if (updateViewProj) {
       mat4.mul(this.viewProjMatrix, this.projectionMatrix, this.viewMatrix);
-      this.frustum.setTransformMatrix(mat4.invert(mat4.create(), this.viewProjMatrix));
+
+      // this.frustum.setTransformMatrix(mat4.mul(mat4.create(), mat4.invert(mat4.create(), this.projectionMatrix), this.viewMatrix));
+      this.frustum.setTransformMatrix(
+        mat4.invert(mat4.create(), this.viewProjMatrix)
+      );
     }
   }
 

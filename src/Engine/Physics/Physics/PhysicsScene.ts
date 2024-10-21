@@ -1,12 +1,15 @@
 import { mat4, vec3 } from "../../../Engine";
-import Octree, { OctreeNodeContentElement } from "../../Shared/Octree";
+import Tree, {
+  TreeNode,
+  TreeNodeContentElement,
+} from "../../Shared/Trees/Tree";
 import Transform from "../../Shared/Transform";
 import { CollisionSolver } from "./CollisionSolver";
 import { IntersectionTester } from "./IntersectionTester";
 import PhysicsObject from "./Objects/PhysicsObject";
 import Ray from "./Shapes/Ray";
 
-export class OctreePhysicsContentElement extends OctreeNodeContentElement {
+export class TreePhysicsContentElement extends TreeNodeContentElement {
   physicsObject: PhysicsObject;
   constructor(physicsObject: PhysicsObject) {
     super(physicsObject.boundingBox);
@@ -18,12 +21,12 @@ export default class PhysicsScene {
   gravity: vec3;
 
   physicsObjects: Array<PhysicsObject>;
-  octree: Octree;
+  tree: Tree;
 
   constructor() {
     this.gravity = vec3.fromValues(0.0, -9.8, 0.0);
     this.physicsObjects = new Array<PhysicsObject>();
-    this.octree = new Octree(vec3.fromValues(-50, -50, -50), vec3.fromValues(50, 50, 50), 15, 5);
+    this.tree = new Tree(new TreeNode(100, vec3.fromValues(0, 0, 0), 15, 5, [true, false, true]));
   }
 
   /**
@@ -42,48 +45,70 @@ export default class PhysicsScene {
       length = this.physicsObjects.push(new PhysicsObject(transform));
     }
 
-    const octreeContent = new OctreePhysicsContentElement(this.physicsObjects[length - 1]);
-    this.octree.addContent(octreeContent);
-    
+    const treeContent = new TreePhysicsContentElement(
+      this.physicsObjects[length - 1]
+    );
+    this.tree.addContent(treeContent);
+
     return this.physicsObjects[length - 1];
   }
 
   removePhysicsObject(physicsObject) {
-    this.octree.removeContent((value: OctreePhysicsContentElement) => {return physicsObject.physicsObjectId == value.physicsObject.physicsObjectId});
+    this.tree.removeContent((value: TreePhysicsContentElement) => {
+      return (
+        physicsObject.physicsObjectId == value.physicsObject.physicsObjectId
+      );
+    });
 
-    this.physicsObjects = this.physicsObjects.filter(
-      (o) => {return physicsObject.physicsObjectId !== o.physicsObjectId}
-    );
+    this.physicsObjects = this.physicsObjects.filter((o) => {
+      return physicsObject.physicsObjectId !== o.physicsObjectId;
+    });
   }
 
-  doRayCast(ray: Ray, ignoreObjectsList: PhysicsObject[] = [], maxDistance: number = Infinity): {distance: number, object: PhysicsObject} {
-    let octreeContentToTestAgainst = new Array<OctreePhysicsContentElement>();
-    this.octree.getContentForRayCast(ray, octreeContentToTestAgainst, maxDistance);
+  doRayCast(
+    ray: Ray,
+    ignoreObjectsList: PhysicsObject[] = [],
+    maxDistance: number = Infinity
+  ): { distance: number; object: PhysicsObject } {
+    let treeContentToTestAgainst = new Array<TreePhysicsContentElement>();
+    this.tree.getContentForRayCast(
+      ray,
+      treeContentToTestAgainst,
+      maxDistance
+    );
 
     let closestHit = Infinity;
     let closestObj = null;
-    for (let octreeContent of octreeContentToTestAgainst) {
-      if (ignoreObjectsList.find((value) => {
-        return value.physicsObjectId == octreeContent.physicsObject.physicsObjectId
-      }) != undefined) {
+    for (let treeContent of treeContentToTestAgainst) {
+      if (
+        ignoreObjectsList.find((value) => {
+          return (
+            value.physicsObjectId == treeContent.physicsObject.physicsObjectId
+          );
+        }) != undefined
+      ) {
         continue;
       }
 
       let hit = IntersectionTester.doRayCast(
         ray,
-        [octreeContent.physicsObject.boundingBox],
+        [treeContent.physicsObject.boundingBox],
         Math.min(maxDistance, closestHit)
       );
       if (closestHit > hit) {
         closestHit = hit;
-        closestObj = octreeContent.physicsObject;
+        closestObj = treeContent.physicsObject;
       }
     }
 
-    return {distance: closestHit, object: closestObj};
+    return { distance: closestHit, object: closestObj };
   }
 
-  update(dt: number, updateStaticObjects: boolean = false, calculatePhysics: boolean = true) {
+  update(
+    dt: number,
+    updateStaticObjects: boolean = false,
+    calculatePhysics: boolean = true
+  ) {
     // Update all bounding boxes
     for (let physicsObject of this.physicsObjects) {
       if (!physicsObject.isStatic || updateStaticObjects) {
@@ -93,13 +118,13 @@ export default class PhysicsScene {
       }
     }
 
-    this.octree.recalculate();
-    this.octree.prune();
+    this.tree.recalculate();
+    this.tree.prune();
 
     if (!calculatePhysics) {
       return;
     }
-    
+
     for (let i = 0; i < this.physicsObjects.length; i++) {
       let physicsObject = this.physicsObjects[i];
       if (physicsObject.isStatic) {
@@ -109,11 +134,17 @@ export default class PhysicsScene {
 
       if (!physicsObject.isImmovable) {
         // Calculate collisions with other objects
-        let otherObjects = new Array<OctreePhysicsContentElement>();
-        this.octree.getContentFromIntersection(physicsObject.boundingBox, otherObjects);
+        let otherObjects = new Array<TreePhysicsContentElement>();
+        this.tree.getContentFromIntersection(
+          physicsObject.boundingBox,
+          otherObjects
+        );
 
         for (let otherObject of otherObjects) {
-          if (physicsObject.physicsObjectId == otherObject.physicsObject.physicsObjectId) {
+          if (
+            physicsObject.physicsObjectId ==
+            otherObject.physicsObject.physicsObjectId
+          ) {
             continue; // Don't collide with self.
           }
 
@@ -125,9 +156,7 @@ export default class PhysicsScene {
             inf
           );
 
-          if (
-            inf.length > 0
-          ) {
+          if (inf.length > 0) {
             // Bounding boxes are intersecting
             CollisionSolver.handleCollision(
               inf,
@@ -136,7 +165,6 @@ export default class PhysicsScene {
             );
           }
         }
-
       }
 
       if (!physicsObject.isStatic) {

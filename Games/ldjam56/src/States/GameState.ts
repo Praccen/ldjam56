@@ -1,9 +1,12 @@
 import {
   Camera,
+  Frustum,
   GUIRenderer,
+  mat4,
   PhysicsScene,
   Renderer3D,
   Scene,
+  ShapeGraphicsObject,
   vec2,
   vec3,
 } from "praccen-web-engine";
@@ -21,6 +24,7 @@ export default class GameState {
   private scene: Scene;
   private physicsScene: PhysicsScene;
   camera: Camera;
+  private frustum: Frustum;
   gui: GUI;
   gameOver: boolean = false;
   playerSpottedByEnemy: Enemy = null;
@@ -87,6 +91,8 @@ export default class GameState {
     // Create a camera and set it's starting position
     this.camera = new Camera();
     this.camera.setPosition(vec3.fromValues(4.0, 4.0, 7.0));
+
+    this.frustum = new Frustum();
 
     const camPosCookie = GetCookie("camPos");
     const camDirCookie = GetCookie("camDir");
@@ -269,6 +275,7 @@ export default class GameState {
         // vec3.add(vec3.create(), this.player.physicsObj.transform.position, offsetVec)
       );
       this.camera.setDir(vec3.negate(vec3.create(), offsetVec));
+      // this.camera.setDir(vec3.fromValues(0.0, -1.0, -0.01));
       this.scene.getDirectionalLight().shadowFocusPos = vec3.fromValues(
         this.map.focusRoom[0] * 10.0 + 5.0,
         0.0,
@@ -276,6 +283,10 @@ export default class GameState {
       );
 
       this.gui.mapDisplay.setHidden(false);
+
+      this.frustum.setTransformMatrix(
+        mat4.invert(mat4.create(), this.camera.getViewProjMatrix())
+      );
     } else {
       // Move camera with WASD (W and S will move along the direction of the camera, not along the xz plane)
       const cameraSpeed = 10.0;
@@ -332,17 +343,25 @@ export default class GameState {
           this.camera.getPosition()[2]
       );
       SetCookie("camDir", this.pitch + ":" + this.jaw);
+
+      if (Input.keys["O"]) {
+        let frustumMatrix = mat4.invert(
+          mat4.create(),
+          this.camera.getViewProjMatrix()
+        );
+        this.frustum.setTransformMatrix(frustumMatrix);
+      }
     }
 
-    // if (Input.keys["P"]) {
-    //   if (!this.pWasPressed) {
-    //     this.freeCam = !this.freeCam;
-    //   }
+    if (Input.keys["P"]) {
+      if (!this.pWasPressed) {
+        this.freeCam = !this.freeCam;
+      }
 
-    //   this.pWasPressed = true;
-    // } else {
-    //   this.pWasPressed = false;
-    // }
+      this.pWasPressed = true;
+    } else {
+      this.pWasPressed = false;
+    }
 
     // if (Input.keys["O"]) {
     //   this.saveScreenshot = true;
@@ -402,10 +421,16 @@ export default class GameState {
 
   draw() {
     if (this.saveScreenshot) {
-      this.renderer.render(this.scene, this.camera, true, "captureScreen.png");
+      this.renderer.render(
+        this.scene,
+        this.camera,
+        this.frustum,
+        true,
+        "captureScreen.png"
+      );
       this.saveScreenshot = false;
     } else {
-      this.renderer.render(this.scene, this.camera);
+      this.renderer.render(this.scene, this.camera, this.frustum);
     }
   }
 }

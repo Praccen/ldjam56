@@ -1,6 +1,47 @@
 import { mat3, mat4, vec3 } from "gl-matrix";
 import Shape from "./Shape";
 
+/*
+       3--------7
+      /|       /|
+     / |      / |
+    2--+-----6  |
+    |  |     |  |
+    |  1-----+--5
+    | /      | /
+    |/       |/
+    0--------4
+  */
+
+const indices = new Int32Array([
+  // Far top
+  3, 7,
+  // Far left
+  3, 1,
+  // Far bottom
+  1, 5,
+  // Far right
+  5, 7,
+
+  // Left top
+  2, 3,
+  // Right top
+  6, 7,
+  // Left bottom
+  0, 1,
+  // Right bottom
+  4, 5,
+
+  // Near top
+  2, 6,
+  // Near left
+  2, 0,
+  // Near bottom
+  0, 4,
+  // Near right
+  6, 4,
+]);
+
 export default class OBB extends Shape {
   private originalVertices: Array<vec3>;
   private originalNormals: Array<vec3>;
@@ -91,7 +132,7 @@ export default class OBB extends Shape {
     let minVec = vec3.fromValues(Infinity, Infinity, Infinity);
     let maxVec = vec3.fromValues(-Infinity, -Infinity, -Infinity);
 
-    for (let point of pointArray) {
+    for (const point of pointArray) {
       vec3.min(minVec, minVec, point);
       vec3.max(maxVec, maxVec, point);
     }
@@ -188,5 +229,9 @@ export default class OBB extends Shape {
 
   getTransformMatrix(): mat4 {
     return this.transformMatrix;
+  }
+
+  getDrawingInfo(): { indices: Int32Array; mode: GLuint } {
+    return { indices: indices, mode: WebGL2RenderingContext.LINES };
   }
 }

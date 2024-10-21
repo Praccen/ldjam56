@@ -10,7 +10,7 @@ export default class Slider extends GuiObject {
   private label: HTMLLabelElement;
 
   private onChangeFunction: (this: HTMLInputElement, ev: MouseEvent) => any;
-  
+
   constructor(domElement: HTMLDivElement, parentDiv?: Div) {
     super(domElement, parentDiv);
     this.position = vec2.create();

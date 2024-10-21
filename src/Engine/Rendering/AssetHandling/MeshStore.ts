@@ -84,9 +84,11 @@ export default class MeshStore {
     });
     let newlyCreatedMesh = this.animatedMeshMap.get(path);
     const gltfObject = await this.parseGltfContent(path);
-    
+
     if (!gltfObject.ok || gltfObject.getNumMeshes() == 0) {
-      console.error("glTF file " + path + " couldn't load one or more binary files");
+      console.error(
+        "glTF file " + path + " couldn't load one or more binary files"
+      );
       return newlyCreatedMesh;
     }
 
@@ -97,7 +99,7 @@ export default class MeshStore {
       if (data[0].indexData.length > 0) {
         newlyCreatedMesh.go.setIndexData(data[0].indexData);
       }
-      
+
       // // positions
       // console.log("Positions");
       // for (let i = 0; i < data[0].vertexData.length; i += 16) {
@@ -115,7 +117,6 @@ export default class MeshStore {
       // for (let i = 12; i < data[0].vertexData.length; i += 16) {
       //   console.log("(" + data[0].vertexData[i] + " , " + data[0].vertexData[i + 1] + " , " + data[0].vertexData[i + 2] + " , " + data[0].vertexData[i + 3]+ ")");
       // }
-
     }
 
     return newlyCreatedMesh;
@@ -413,7 +414,7 @@ export default class MeshStore {
     let gltfContent = await response.json();
 
     const baseURL = new URL(meshPath, location.href);
-    
+
     gltfContent.buffers = await Promise.all(
       gltfContent.buffers.map(async (buffer) => {
         const url = new URL(buffer.uri, baseURL.href);

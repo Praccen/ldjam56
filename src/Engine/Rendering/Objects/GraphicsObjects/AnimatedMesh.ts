@@ -14,8 +14,8 @@ export default class AnimatedMesh extends GraphicsObject {
   }
 
   setVertexData(data: Float32Array) {
-    super.setVertexData(data);
     this.vertices = data;
+    super.setVertexData(data);
   }
 
   setIndexData(data: Int32Array): void {

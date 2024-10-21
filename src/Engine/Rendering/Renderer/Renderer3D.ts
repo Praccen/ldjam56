@@ -26,6 +26,9 @@ import RendererBase from "./RendererBase";
 import GeometryPassSkeletalAnimationShaderProgram from "./ShaderPrograms/DeferredRendering/GeometryPassSkeletalAnimationShaderProgram";
 import DirectionalShadowSkeletalAnimationShaderProgram from "./ShaderPrograms/ShadowMapping/DirectionalShadowSkeletalAnimationShaderProgram";
 import PointShadowSkeletalAnimationShaderProgram from "./ShaderPrograms/ShadowMapping/PointShadowSkeletalAnimationShaderProgram";
+import Shape from "../../Physics/Physics/Shapes/Shape";
+import ShapesShaderProgram from "./ShaderPrograms/Shapes/ShapesShaderProgram";
+import ShapesRenderPass from "./RenderPasses/Shapes/ShapesRenderPass";
 
 export default class Renderer3D extends RendererBase {
   // ---- Multi use ----
@@ -70,6 +73,11 @@ export default class Renderer3D extends RendererBase {
   useVolumetric: boolean;
   private volumetricLightingPass: VolumetricLightingPass;
   // -----------------------------
+
+  // ---- Shapes ----
+  shapesShaderProgram: ShapesShaderProgram;
+  private shapesRenderPass: ShapesRenderPass;
+  // ----------------
 
   // ---- Finished output ----
   private finishedFramebuffer: Framebuffer;
@@ -152,7 +160,7 @@ export default class Renderer3D extends RendererBase {
     );
     // ----------------
 
-    // ---- Paricles ----
+    // ---- Particles ----
     this.particleShaderProgram = new ParticleShaderProgram(this.gl);
     this.particleRenderPass = new ParticleRenderPass(
       this.gl,
@@ -172,6 +180,14 @@ export default class Renderer3D extends RendererBase {
     );
     this.useVolumetric = false;
     // -----------------------------
+
+    // ---- Shape renderer ----
+    this.shapesShaderProgram = new ShapesShaderProgram(this.gl);
+    this.shapesRenderPass = new ShapesRenderPass(
+      this.gl,
+      this.shapesShaderProgram
+    );
+    // ------------------------
 
     this.finishedFramebuffer = new Framebuffer(
       this.gl,
@@ -231,22 +247,23 @@ export default class Renderer3D extends RendererBase {
   render(
     scene: Scene,
     camera: Camera,
+    cameraFrustum: Shape,
     saveScreenshot: boolean = false,
     screenshotName: string = "screencapture"
   ) {
     this.gl.enable(this.gl.DEPTH_TEST);
 
+    scene.updateAnimatedMeshes();
     scene.calculateAllTransforms();
-    scene.updateAnimatedMeshes()
-    scene.updateOctrees();
+    scene.updateTrees();
 
     // ---- Shadow pass ----
     this.directionalShadowRenderPass.draw(scene);
-    this.pointShadowRenderPass.draw(scene);
+    this.pointShadowRenderPass.draw(scene, cameraFrustum);
     // ---------------------
 
     // ---- Geometry pass ----
-    this.geometryRenderPass.draw(scene, camera);
+    this.geometryRenderPass.draw(scene, camera, cameraFrustum);
     // -----------------------
 
     // Geometry pass over, start rendering to particle render pass output
@@ -299,6 +316,10 @@ export default class Renderer3D extends RendererBase {
       this.volumetricLightingPass.draw(scene, camera, this.rendererStartTime);
     }
     // -----------------------------
+
+    // ---- Shapes ----
+    this.shapesRenderPass.draw(scene, camera);
+    // ----------------
 
     this.finishedOutputRenderPass.draw();
 

@@ -2,7 +2,6 @@ import { mat4, vec3 } from "../../../../Engine";
 import Transform from "../../../Shared/Transform";
 import OBB from "../Shapes/OBB";
 
-
 export default class PhysicsObject {
   static idCounter = 0;
   mass: number;

@@ -208,7 +208,12 @@ class GltfAccessor {
       "componentType"
     );
     setPropertyWithoutTypeConversion(gltfAccessor, "count", this, "count");
-    setPropertyWithoutTypeConversion(gltfAccessor, "byteOffset", this, "byteOffset");
+    setPropertyWithoutTypeConversion(
+      gltfAccessor,
+      "byteOffset",
+      this,
+      "byteOffset"
+    );
     setPropertyWithoutTypeConversion(gltfAccessor, "type", this, "type");
   }
 }
@@ -328,7 +333,7 @@ class GltfSkin {
 
 class GltfChannel {
   sampler: number = -1;
-  target: {node: number, path: string} = {node: -1, path: ""};
+  target: { node: number; path: string } = { node: -1, path: "" };
   constructor(gltfChannel: any) {
     setPropertyWithoutTypeConversion(gltfChannel, "sampler", this, "sampler");
     setPropertyWithoutTypeConversion(gltfChannel, "target", this, "target");
@@ -341,7 +346,12 @@ class GltfSampler {
   output: number = -1;
   constructor(gltfSampler: any) {
     setPropertyWithoutTypeConversion(gltfSampler, "input", this, "input");
-    setPropertyWithoutTypeConversion(gltfSampler, "interpolation", this, "interpolation");
+    setPropertyWithoutTypeConversion(
+      gltfSampler,
+      "interpolation",
+      this,
+      "interpolation"
+    );
     setPropertyWithoutTypeConversion(gltfSampler, "output", this, "output");
   }
 }
@@ -457,31 +467,33 @@ export default class GltfObject {
   }
 
   private checkBufferAccessorIntegrety(accessor: GltfAccessor): boolean {
-    const bufferView =
-      this.bufferViews[accessor.bufferView];
+    const bufferView = this.bufferViews[accessor.bufferView];
     let buffer = bufferView.buffer;
     let offset = bufferView.byteOffset + accessor.byteOffset;
 
-    return this.gltfJsonContent.buffers[buffer].byteLength >= bufferView.byteLength - offset;
+    return (
+      this.gltfJsonContent.buffers[buffer].byteLength >=
+      bufferView.byteLength - offset
+    );
   }
 
-  private getBufferInfoForAccessor(accessor: GltfAccessor):{
+  private getBufferInfoForAccessor(accessor: GltfAccessor): {
     buffer: number;
     stride: number;
     data: Buffer;
   } {
-    const bufferView =
-      this.bufferViews[accessor.bufferView];
+    const bufferView = this.bufferViews[accessor.bufferView];
     let buffer = bufferView.buffer;
     let offset = bufferView.byteOffset + accessor.byteOffset;
-    let stride = bufferView.byteStride / glTypeToByteSize[accessor.componentType];
-    let length = (bufferView.byteLength - accessor.byteOffset) / glTypeToByteSize[accessor.componentType];
+    let stride =
+      bufferView.byteStride / glTypeToByteSize[accessor.componentType];
+    let length =
+      (bufferView.byteLength - accessor.byteOffset) /
+      glTypeToByteSize[accessor.componentType];
     return {
       buffer: buffer,
       stride: stride,
-      data: new glTypeToTypedArrayMap[
-        accessor.componentType
-      ](
+      data: new glTypeToTypedArrayMap[accessor.componentType](
         this.gltfJsonContent.buffers[buffer],
         offset,
         length
@@ -492,11 +504,13 @@ export default class GltfObject {
   private getBufferInfoFromAttribute(
     primitive: GltfPrimitive,
     attribute: string
-  ): { buffer: number; stride: number, data: Buffer } {
+  ): { buffer: number; stride: number; data: Buffer } {
     if (primitive.attributes[attribute] < 0) {
       return null;
     }
-    return this.getBufferInfoForAccessor(this.accessors[primitive.attributes[attribute]]);
+    return this.getBufferInfoForAccessor(
+      this.accessors[primitive.attributes[attribute]]
+    );
   }
 
   getBufferData(
@@ -590,10 +604,11 @@ export default class GltfObject {
         for (let j = 0; j < stride; j++) {
           if (positionsBufferInfo == undefined) {
             buffers[bufferIndex].vertexData[i * 16 + o] = 0.0;
-          }
-          else {
+          } else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              positionsBufferInfo.data[i * (Math.max(stride, positionsBufferInfo.stride)) + j];
+              positionsBufferInfo.data[
+                i * Math.max(stride, positionsBufferInfo.stride) + j
+              ];
           }
           o++;
         }
@@ -602,10 +617,11 @@ export default class GltfObject {
         for (let j = 0; j < stride; j++) {
           if (normalBufferInfo == undefined) {
             buffers[bufferIndex].vertexData[i * 16 + o] = 1.0;
-          }
-          else {
+          } else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              normalBufferInfo.data[i * (Math.max(stride, normalBufferInfo.stride)) + j];
+              normalBufferInfo.data[
+                i * Math.max(stride, normalBufferInfo.stride) + j
+              ];
           }
           o++;
         }
@@ -614,10 +630,13 @@ export default class GltfObject {
         for (let j = 0; j < stride; j++) {
           if (texCoordsBufferInfo == undefined) {
             buffers[bufferIndex].vertexData[i * 16 + o] = 0.0;
-          }
-          else {
-            buffers[bufferIndex].vertexData[i * 16 + o] =
-              Math.abs(j - texCoordsBufferInfo.data[i * (Math.max(stride, texCoordsBufferInfo.stride)) + j]); // This flips the y-coordinate
+          } else {
+            buffers[bufferIndex].vertexData[i * 16 + o] = Math.abs(
+              j -
+                texCoordsBufferInfo.data[
+                  i * Math.max(stride, texCoordsBufferInfo.stride) + j
+                ]
+            ); // This flips the y-coordinate
           }
           o++;
         }
@@ -626,10 +645,11 @@ export default class GltfObject {
         for (let j = 0; j < stride; j++) {
           if (weightsBufferInfo == undefined) {
             buffers[bufferIndex].vertexData[i * 16 + o] = 1.0;
-          }
-          else {
+          } else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              weightsBufferInfo.data[i * (Math.max(stride, weightsBufferInfo.stride)) + j];
+              weightsBufferInfo.data[
+                i * Math.max(stride, weightsBufferInfo.stride) + j
+              ];
           }
           o++;
         }
@@ -638,10 +658,11 @@ export default class GltfObject {
         for (let j = 0; j < stride; j++) {
           if (jointsBufferInfo == undefined) {
             buffers[bufferIndex].vertexData[i * 16 + o] = 0.0;
-          }
-          else {
+          } else {
             buffers[bufferIndex].vertexData[i * 16 + o] =
-              jointsBufferInfo.data[i * (Math.max(stride, jointsBufferInfo.stride)) + j];
+              jointsBufferInfo.data[
+                i * Math.max(stride, jointsBufferInfo.stride) + j
+              ];
           }
           o++;
         }
@@ -652,12 +673,15 @@ export default class GltfObject {
       }
 
       numberOfIndices += this.accessors[primitive.indices].count;
-      
+
       buffers[bufferIndex].indexData = new Int32Array(numberOfIndices);
 
-      let indicesBufferInfo = this.getBufferInfoForAccessor(this.accessors[primitive.indices]);
+      let indicesBufferInfo = this.getBufferInfoForAccessor(
+        this.accessors[primitive.indices]
+      );
       for (let i = 0; i < numberOfIndices; i++) {
-        buffers[bufferIndex].indexData[i] = indicesBufferInfo.data[i * (1 + indicesBufferInfo.stride)];
+        buffers[bufferIndex].indexData[i] =
+          indicesBufferInfo.data[i * (1 + indicesBufferInfo.stride)];
       }
     }
     return buffers;
@@ -668,8 +692,9 @@ export default class GltfObject {
       return [mat4.create()];
     }
 
-    let inverseBindMatricesBufferInfo =
-      this.getBufferInfoForAccessor(this.accessors[this.skins[skinIdx].inverseBindMatrices]);
+    let inverseBindMatricesBufferInfo = this.getBufferInfoForAccessor(
+      this.accessors[this.skins[skinIdx].inverseBindMatrices]
+    );
     let inverseBindMatrices = new Array<mat4>();
     let ibd = inverseBindMatricesBufferInfo.data;
 
@@ -701,7 +726,7 @@ export default class GltfObject {
 
   getBoneMatrices(skinIdx: number): Array<mat4> {
     let boneMatrices = new Array<mat4>();
-    if (this.skins.length == 0) { 
+    if (this.skins.length == 0) {
       // No skins available, use only one identity matrix
       boneMatrices.push(mat4.create());
     }
@@ -725,7 +750,7 @@ export default class GltfObject {
     return this.animations.length;
   }
 
-  animate(animationIdx: number, time: number): number{
+  animate(animationIdx: number, time: number): number {
     if (animationIdx >= this.animations.length) {
       return;
     }
@@ -741,10 +766,16 @@ export default class GltfObject {
         continue;
       }
 
-      let inputBufferInfo = this.getBufferInfoForAccessor(this.accessors[animation.samplers[channel.sampler].input]);
+      let inputBufferInfo = this.getBufferInfoForAccessor(
+        this.accessors[animation.samplers[channel.sampler].input]
+      );
       let timeline = new Array<number>();
-      
-      for (let i = 0; i < inputBufferInfo.data.length; i += Math.max(1, inputBufferInfo.stride)) {
+
+      for (
+        let i = 0;
+        i < inputBufferInfo.data.length;
+        i += Math.max(1, inputBufferInfo.stride)
+      ) {
         timeline.push(inputBufferInfo.data[i]);
       }
 
@@ -759,15 +790,14 @@ export default class GltfObject {
       value.forEach((value) => {
         max = Math.max(value, max);
         min = Math.min(value, min);
-      }); 
+      });
 
-      let timeModolo = min + time % (max - min);
+      let timeModolo = min + (time % (max - min));
 
       for (let i = 0; i < value.length; i++) {
         if (timeModolo > value[i]) {
           timelineIndex = i;
-        }
-        else {
+        } else {
           break;
         }
       }
@@ -777,19 +807,39 @@ export default class GltfObject {
 
     // Then go through the channels to update the targets using the samplers output
     for (const channel of animation.channels) {
-      let outputBufferInfo = this.getBufferInfoForAccessor(this.accessors[animation.samplers[channel.sampler].output])
-      const idx = timelineIndexMap.get(animation.samplers[channel.sampler].input);
+      let outputBufferInfo = this.getBufferInfoForAccessor(
+        this.accessors[animation.samplers[channel.sampler].output]
+      );
+      const idx = timelineIndexMap.get(
+        animation.samplers[channel.sampler].input
+      );
       if (channel.target.path == "translation") {
         let translationIndex = idx * Math.max(3, outputBufferInfo.stride);
-        vec3.set(this.nodes[channel.target.node].transform.position, outputBufferInfo.data[translationIndex], outputBufferInfo.data[translationIndex + 1], outputBufferInfo.data[translationIndex + 2]);
+        vec3.set(
+          this.nodes[channel.target.node].transform.position,
+          outputBufferInfo.data[translationIndex],
+          outputBufferInfo.data[translationIndex + 1],
+          outputBufferInfo.data[translationIndex + 2]
+        );
       }
       if (channel.target.path == "rotation") {
         let rotationIndex = idx * Math.max(4, outputBufferInfo.stride);
-        quat.set(this.nodes[channel.target.node].transform.rotation, outputBufferInfo.data[rotationIndex], outputBufferInfo.data[rotationIndex + 1], outputBufferInfo.data[rotationIndex + 2], outputBufferInfo.data[rotationIndex + 3]);
+        quat.set(
+          this.nodes[channel.target.node].transform.rotation,
+          outputBufferInfo.data[rotationIndex],
+          outputBufferInfo.data[rotationIndex + 1],
+          outputBufferInfo.data[rotationIndex + 2],
+          outputBufferInfo.data[rotationIndex + 3]
+        );
       }
       if (channel.target.path == "scale") {
         let scaleIndex = idx * Math.max(3, outputBufferInfo.stride);
-        vec3.set(this.nodes[channel.target.node].transform.scale, outputBufferInfo.data[scaleIndex], outputBufferInfo.data[scaleIndex + 1], outputBufferInfo.data[scaleIndex + 2]);
+        vec3.set(
+          this.nodes[channel.target.node].transform.scale,
+          outputBufferInfo.data[scaleIndex],
+          outputBufferInfo.data[scaleIndex + 1],
+          outputBufferInfo.data[scaleIndex + 2]
+        );
       }
     }
     return timelineIndex;

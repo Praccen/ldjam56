@@ -204,6 +204,7 @@ class Path {
 
 export default class ProceduralMap {
   private scene: ENGINE.Scene;
+  private instancedMeshes: Map<string, ENGINE.GraphicsBundle>;
   private floorPhysicsObject: ENGINE.PhysicsObject;
   private map: Array<Array<number>>;
   private exploredAsciiMap: string;
@@ -224,6 +225,7 @@ export default class ProceduralMap {
   ) {
     this.scene = scene;
     this.physicsScene = physicsScene;
+    this.instancedMeshes = new Map<string, ENGINE.GraphicsBundle>();
     this.finalLevel = finalLevel;
 
     this.exploredAsciiMap = "";
@@ -429,15 +431,82 @@ export default class ProceduralMap {
     }
 
     meshesToLoad.add("Assets/objs/MyDungeon/Floor.obj");
-    // meshesToLoad.add(
-    //   "Assets/objs/dungeonPack/floor_tile_extralarge_grates_open.obj"
-    // );
+    meshesToLoad.add("Assets/objs/MyDungeon/Tentacles.obj");
+    meshesToLoad.add(
+      "Assets/objs/dungeonPack/floor_tile_extralarge_grates_open.obj"
+    );
     meshesToLoad.add("Assets/objs/dungeonPack/wall_half.obj");
 
     // Load meshes before creating
     this.scene.renderer.meshStore
       .loadMeshes(Array.from(meshesToLoad), { loaded: 0 })
       .then(async () => {
+        for (let piece of wallPieceModels) {
+          for (let path of piece.paths)
+            if (path != "") {
+              if (!this.instancedMeshes.has(path)) {
+                this.instancedMeshes.set(
+                  path,
+                  await Factories.createInstancedMesh(
+                    scene,
+                    path,
+                    "Assets/Textures/dungeon_texture.png",
+                    "CSS:rgb(0, 0, 0)"
+                  )
+                );
+              }
+            }
+        }
+
+        this.instancedMeshes.set(
+          "Assets/objs/MyDungeon/Floor.obj",
+          await Factories.createInstancedMesh(
+            scene,
+            "Assets/objs/MyDungeon/Floor.obj",
+            "Assets/objs/MyDungeon/Floor.mtl",
+            "CSS:rgb(0, 0, 0)"
+          )
+        );
+
+        this.instancedMeshes.set(
+          "Assets/objs/MyDungeon/Tentacles.obj",
+          await Factories.createInstancedMesh(
+            scene,
+            "Assets/objs/MyDungeon/Tentacles.obj",
+            "Assets/objs/MyDungeon/Tentacles.mtl",
+            "Assets/objs/MyDungeon/Tentacles_spec.mtl"
+          )
+        );
+
+        this.instancedMeshes.set(
+          "Assets/objs/dungeonPack/floor_tile_extralarge_grates_open.obj",
+          await Factories.createInstancedMesh(
+            scene,
+            "Assets/objs/dungeonPack/floor_tile_extralarge_grates_open.obj",
+            "Assets/Textures/dungeon_texture.png",
+            "CSS:rgb(0, 0, 0)"
+          )
+        );
+
+        this.instancedMeshes.set(
+          "Assets/objs/dungeonPack/wall_half.obj",
+          await Factories.createInstancedMesh(
+            scene,
+            "Assets/objs/dungeonPack/wall_half.obj",
+            "Assets/Textures/dungeon_texture.png",
+            "CSS:rgb(0, 0, 0)"
+          )
+        );
+
+        this.instancedMeshes.set(
+          "Assets/objs/dungeonPack/stairs.obj",
+          await Factories.createInstancedMesh(
+            scene,
+            "Assets/objs/dungeonPack/stairs.obj",
+            "Assets/Textures/dungeon_texture.png",
+            "CSS:rgb(0, 0, 0)"
+          )
+        );
 
         for (let column = 0; column < columns + 1; column++) {
           for (let row = 0; row < rows + 1; row++) {
@@ -448,10 +517,8 @@ export default class ProceduralMap {
                 column * 2 + 1 == this.goalRoom[0] &&
                 row * 2 + 1 == this.goalRoom[1]
               ) {
-                let mesh = await this.scene.addNewMesh(
-                  "Assets/objs/dungeonPack/stairs.obj",
-                  "Assets/Textures/dungeon_texture.png",
-                  "CSS:rgb(0, 0, 0)"
+                let mesh = this.instancedMeshes.get(
+                  "Assets/objs/dungeonPack/stairs.obj"
                 );
 
                 mesh.transform.position = vec3.clone(
@@ -476,10 +543,8 @@ export default class ProceduralMap {
               }
 
               if (this.map[column * 2 + 1][row * 2 + 1] == 0) {
-                let mesh = await this.scene.addNewMesh(
-                  "Assets/objs/MyDungeon/Floor.obj",
-                  "Assets/objs/MyDungeon/Floor.mtl",
-                  "CSS:rgb(0, 0, 0)"
+                let mesh = this.instancedMeshes.get(
+                  "Assets/objs/MyDungeon/Floor.obj"
                 );
 
                 vec3.set(
@@ -530,10 +595,8 @@ export default class ProceduralMap {
                 wallPieceModels[this.map[column * 2 + 1][row * 2]].paths;
               const rots =
                 wallPieceModels[this.map[column * 2 + 1][row * 2]].rot;
-              let mesh = await this.scene.addNewMesh(
-                paths[Math.floor(Math.random() * paths.length)],
-                "Assets/Textures/dungeon_texture.png",
-                "CSS:rgb(0, 0, 0)"
+              let mesh = this.instancedMeshes.get(
+                paths[Math.floor(Math.random() * paths.length)]
               );
               vec3.set(
                 mesh.transform.position,
@@ -556,10 +619,8 @@ export default class ProceduralMap {
               );
               mesh.modelMatrices.push(matrix);
 
-              mesh = await this.scene.addNewMesh(
-                "Assets/objs/dungeonPack/wall_half.obj",
-                "Assets/Textures/dungeon_texture.png",
-                "CSS:rgb(0, 0, 0)"
+              mesh = this.instancedMeshes.get(
+                "Assets/objs/dungeonPack/wall_half.obj"
               );
               vec3.set(
                 mesh.transform.position,
@@ -586,8 +647,7 @@ export default class ProceduralMap {
               );
               phyTrans.scale = vec3.clone(physicsObjectScales[1]);
 
-              let physObj =
-                this.physicsScene.addNewPhysicsObject(phyTrans);
+              let physObj = this.physicsScene.addNewPhysicsObject(phyTrans);
               physObj.isStatic = true;
               physObj.frictionCoefficient = 0.0;
             }
@@ -602,11 +662,8 @@ export default class ProceduralMap {
                 wallPieceModels[this.map[column * 2][row * 2 + 1]].paths;
               const rots =
                 wallPieceModels[this.map[column * 2][row * 2 + 1]].rot;
-              let mesh = await this.scene.addNewMesh(
-                paths[Math.floor(Math.random() * paths.length)],
-                "Assets/Textures/dungeon_texture.png",
-                "CSS:rgb(0, 0, 0)"
-
+              let mesh = this.instancedMeshes.get(
+                paths[Math.floor(Math.random() * paths.length)]
               );
               vec3.set(
                 mesh.transform.position,
@@ -629,10 +686,8 @@ export default class ProceduralMap {
               );
               mesh.modelMatrices.push(matrix);
 
-              mesh = await this.scene.addNewMesh(
-                "Assets/objs/dungeonPack/wall_half.obj",
-                "Assets/Textures/dungeon_texture.png",
-                "CSS:rgb(0, 0, 0)"
+              mesh = this.instancedMeshes.get(
+                "Assets/objs/dungeonPack/wall_half.obj"
               );
               vec3.set(
                 mesh.transform.position,
@@ -659,8 +714,7 @@ export default class ProceduralMap {
               );
               phyTrans.scale = vec3.clone(physicsObjectScales[2]);
 
-              let physObj =
-                this.physicsScene.addNewPhysicsObject(phyTrans);
+              let physObj = this.physicsScene.addNewPhysicsObject(phyTrans);
               physObj.isStatic = true;
               physObj.frictionCoefficient = 0.0;
             }
@@ -674,11 +728,7 @@ export default class ProceduralMap {
                 wallPieceModels[this.map[column * 2][row * 2]].paths;
               const rots = wallPieceModels[this.map[column * 2][row * 2]].rot;
               const path = paths[Math.floor(Math.random() * paths.length)];
-              let mesh = await this.scene.addNewMesh(
-                path,
-                "Assets/Textures/dungeon_texture.png",
-                "CSS:rgb(0, 0, 0)"
-              );
+              let mesh = this.instancedMeshes.get(path);
               vec3.set(
                 mesh.transform.position,
                 5.0 + 10 * column + -5.0,
@@ -719,8 +769,7 @@ export default class ProceduralMap {
                 );
                 phyTrans.scale = vec3.clone(physicsObjectScales[0]);
 
-                let physObj =
-                  this.physicsScene.addNewPhysicsObject(phyTrans);
+                let physObj = this.physicsScene.addNewPhysicsObject(phyTrans);
                 physObj.isStatic = true;
                 physObj.frictionCoefficient = 0.0;
               }

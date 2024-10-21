@@ -8,6 +8,7 @@ import Camera from "./Engine/Rendering/Objects/Camera";
 import { GUIRenderer } from "./Engine/Rendering/GUI/GUIRenderer";
 import PhysicsScene from "./Engine/Physics/Physics/PhysicsScene";
 import PhysicsObject from "./Engine/Physics/Physics/Objects/PhysicsObject";
+import Frustum from "./Engine/Physics/Physics/Shapes/Frustum";
 import Ray from "./Engine/Physics/Physics/Shapes/Ray";
 import Transform from "./Engine/Shared/Transform";
 import { MousePicking } from "./Engine/Physics/Maths/MousePicking";
@@ -18,6 +19,7 @@ import Checkbox from "./Engine/Rendering/GUI/Objects/Checkbox";
 import Button from "./Engine/Rendering/GUI/Objects/Button";
 import Div from "./Engine/Rendering/GUI/Objects/Div";
 import PointLight from "./Engine/Rendering/Objects/Lighting/PointLight";
+import ShapeGraphicsObject from "./Engine/Rendering/Objects/GraphicsObjects/ShapeGraphicsObject";
 
 // Rendering exports
 export {
@@ -30,7 +32,7 @@ export {
   AnimatedGraphicsBundle,
 };
 // Physics exports
-export { PhysicsScene, PhysicsObject, Ray, MousePicking };
+export { PhysicsScene, PhysicsObject, Ray, MousePicking, Frustum };
 // Math exports
 export * from "gl-matrix";
 // Shared exports
@@ -38,7 +40,7 @@ export { Transform };
 // GUI exports
 export { TextObject2D, TextObject3D, Slider, Checkbox, Button, Div };
 // Graphics
-export { PointLight };
+export { PointLight, ShapeGraphicsObject };
 
 // Global exports
 export let applicationStartTime = Date.now();

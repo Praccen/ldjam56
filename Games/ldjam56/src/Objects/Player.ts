@@ -12,9 +12,7 @@ import {
 } from "praccen-web-engine";
 import { PointLight } from "../../../../dist/Engine.js";
 import { Input } from "../Input.js";
-import { Howler, Howl } from 'howler';
-
-
+import { Howler, Howl } from "howler";
 
 export default class Player {
   private physicsScene: PhysicsScene;
@@ -48,26 +46,31 @@ export default class Player {
     this.physicsObj = null;
     this.animatedMesh = null;
     this.step = new Howl({
-        src: ["Assets/Audio/mouse_step.wav"],
-        volume: 2.0,
-        rate: 1.0,
+      src: ["Assets/Audio/mouse_step.wav"],
+      volume: 2.0,
+      rate: 1.0,
     });
 
     scene
       .addNewAnimatedMesh(
-          "Assets/gltf/Mouse/mouse.gltf",
-          "Assets/gltf/Mouse/Feldmaus_Diffuse.png",
-          "CSS:rgb(0,0,0)"
+        "Assets/gltf/Mouse/mouse.gltf",
+        "Assets/gltf/Mouse/Feldmaus_Diffuse.png",
+        "CSS:rgb(0,0,0)"
       )
       .then((aMeshBundle) => {
-          this.animatedMesh = aMeshBundle;
-          vec3.copy(aMeshBundle.transform.position, this.playerTargetPos);
-          vec3.set(aMeshBundle.transform.scale, 1.2, 1.2, 1.2);
+        this.animatedMesh = aMeshBundle;
+        vec3.copy(aMeshBundle.transform.position, this.playerTargetPos);
+        vec3.set(aMeshBundle.transform.scale, 1.2, 1.2, 1.2);
 
-          this.physicsObj = physicsScene.addNewPhysicsObject(aMeshBundle.transform);
-          this.physicsObj.isStatic = false;
-          this.physicsObj.frictionCoefficient = 1.0;
-          this.physicsObj.boundingBox.setMinAndMaxVectors(vec3.fromValues(-0.5, 0.0, -0.5), vec3.fromValues(0.5, 1.0, 0.5));
+        this.physicsObj = physicsScene.addNewPhysicsObject(
+          aMeshBundle.transform
+        );
+        this.physicsObj.isStatic = false;
+        this.physicsObj.frictionCoefficient = 1.0;
+        this.physicsObj.boundingBox.setMinAndMaxVectors(
+          vec3.fromValues(-0.5, 0.0, -0.5),
+          vec3.fromValues(0.5, 1.0, 0.5)
+        );
       });
   }
 
@@ -84,14 +87,14 @@ export default class Player {
     }
   }
 
-    playStepSound() {
-        if (!this.step.playing()) {
-            this.step.play();
-        }
+  playStepSound() {
+    if (!this.step.playing()) {
+      this.step.play();
     }
+  }
 
   update(dt: number, camera: Camera, renderer: Renderer3D) {
-    if (Input.mouseRightClicked || Input.mouseClicked || Input.touches.length > 0) {
+    if (Input.mouseRightClicked || Input.touches.length > 0) {
       let clickX = 0;
       let clickY = 0;
       if (Input.mouseRightClicked || Input.mouseClicked) {
@@ -99,7 +102,7 @@ export default class Player {
         clickY = Input.mousePosition.y;
       } else if (Input.touches.length > 0) {
         clickX = Input.touches[0][0];
-        clickY = Input.touches[0][1]; 
+        clickY = Input.touches[0][1];
       }
 
       let rect = renderer.domElement.getClientRects()[0];
@@ -138,13 +141,18 @@ export default class Player {
       );
       this.updateLightPos();
 
-      
       if (vec3.len(this.physicsObj.velocity) > 2.0) {
-        let angle = 210.0 - Math.atan2(this.physicsObj.velocity[2], this.physicsObj.velocity[0]) * 180 / Math.PI;
+        let angle =
+          210.0 -
+          (Math.atan2(
+            this.physicsObj.velocity[2],
+            this.physicsObj.velocity[0]
+          ) *
+            180) /
+            Math.PI;
         quat.fromEuler(this.physicsObj.transform.rotation, 0.0, angle, 0.0);
       }
     }
-
   }
 
   preRenderingUpdate(dt: number) {
@@ -152,10 +160,9 @@ export default class Player {
       if (vec3.len(this.physicsObj.velocity) > 1.0) {
         let keyframe = this.animatedMesh.animate(2, dt, 1.2, 2.0);
         if (keyframe == 28 || keyframe == 39 || keyframe == 47) {
-         this.playStepSound();
+          this.playStepSound();
         }
-      }
-      else {
+      } else {
         this.animatedMesh.animate(1, dt);
       }
     }

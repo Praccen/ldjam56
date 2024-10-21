@@ -12,6 +12,9 @@ export default class GraphicsObject {
   // Protected
   protected gl: WebGL2RenderingContext;
 
+  protected minPositions: vec3 = vec3.create();
+  protected maxPositions: vec3 = vec3.create();
+
   mode: number;
 
   constructor(gl: WebGL2RenderingContext) {
@@ -56,6 +59,17 @@ export default class GraphicsObject {
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.VBO);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, data, this.gl.STATIC_DRAW);
     this.gl.bindVertexArray(null);
+
+    const pointArray = this.getVertexPositions();
+    if (pointArray != undefined && pointArray.length > 0) {
+      vec3.set(this.minPositions, Infinity, Infinity, Infinity);
+      vec3.set(this.maxPositions, -Infinity, -Infinity, -Infinity);
+
+      for (const point of pointArray) {
+        vec3.min(this.minPositions, this.minPositions, point);
+        vec3.max(this.maxPositions, this.maxPositions, point);
+      }
+    }
   }
 
   setIndexData(data: Int32Array) {
@@ -73,6 +87,10 @@ export default class GraphicsObject {
 
   getVertexPositions(): Array<vec3> {
     return null;
+  }
+
+  getMinAndMaxPositions(): { min: vec3; max: vec3 } {
+    return { min: this.minPositions, max: this.maxPositions };
   }
 
   getNumVertices(): number {

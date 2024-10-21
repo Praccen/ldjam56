@@ -101,9 +101,26 @@ export default class PointLight {
   }
 
   getFrustum(): Shape {
-    let radius = (-this.linear + Math.sqrt(this.linear * this.linear - 4.0 * this.quadratic * (this.constant - (256.0 / 5.0)))) / (2.0 * this.quadratic);
+    let radius =
+      (-this.linear +
+        Math.sqrt(
+          this.linear * this.linear -
+            4.0 * this.quadratic * (this.constant - 256.0 / 5.0)
+        )) /
+      (2.0 * this.quadratic);
     let obb = new OBB();
-    obb.setMinAndMaxVectors(vec3.add(vec3.create(), this.position, vec3.fromValues(-radius, -radius, -radius)), vec3.add(vec3.create(), this.position, vec3.fromValues(radius, radius, radius)));
+    obb.setMinAndMaxVectors(
+      vec3.add(
+        vec3.create(),
+        this.position,
+        vec3.fromValues(-radius, -radius, -radius)
+      ),
+      vec3.add(
+        vec3.create(),
+        this.position,
+        vec3.fromValues(radius, radius, radius)
+      )
+    );
     return obb;
   }
 }

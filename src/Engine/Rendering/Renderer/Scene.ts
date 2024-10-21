@@ -6,17 +6,24 @@ import ParticleSpawner from "../Objects/InstancedGraphicsObjects/ParticleSpawner
 import { pointLightsToAllocate } from "./ShaderPrograms/DeferredRendering/LightingPassShaderProgram";
 import RendererBase from "./RendererBase";
 import AnimatedGraphicsBundle from "../Objects/Bundles/AnimatedGraphicsBundle";
-import Octree, { OctreeNodeContentElement } from "../../Shared/Octree";
+import Tree, {
+  TreeNode,
+  TreeNodeContentElement,
+} from "../../Shared/Trees/Tree";
 import OBB from "../../Physics/Physics/Shapes/OBB";
 import { vec3 } from "gl-matrix";
 import Shape from "../../Physics/Physics/Shapes/Shape";
 import { IntersectionTester } from "../../Physics/Physics/IntersectionTester";
+import ShapeGraphicsObject from "../Objects/GraphicsObjects/ShapeGraphicsObject";
 
-export class OctreeSceneContentElement extends OctreeNodeContentElement {
+export class TreeSceneContentElement extends TreeNodeContentElement {
   graphicsBundle: GraphicsBundle;
   constructor(graphicsBundle: GraphicsBundle) {
     let obb = new OBB();
-    obb.setMinAndMaxFromPointArray(graphicsBundle.graphicsObject.getVertexPositions());
+    obb.setMinAndMaxVectors(
+      graphicsBundle.graphicsObject.getMinAndMaxPositions().min,
+      graphicsBundle.graphicsObject.getMinAndMaxPositions().max
+    );
     obb.setTransformMatrix(graphicsBundle.transform.matrix);
     super(obb);
     this.graphicsBundle = graphicsBundle;
@@ -30,6 +37,7 @@ export default class Scene {
   private graphicBundles: Array<GraphicsBundle>;
   private graphicBundlesInstanced: Array<GraphicsBundle>;
   private graphicBundlesAnimated: Array<AnimatedGraphicsBundle>;
+  private shapeGraphicsObjects: Array<ShapeGraphicsObject>;
   particleSpawners: Array<ParticleSpawner>;
   // --------------------------
 
@@ -38,8 +46,8 @@ export default class Scene {
   pointLights: Array<PointLight>;
   // ----------------
 
-  stillOctree: Octree;
-  animatedOctree: Octree;
+  stillTree: Tree;
+  animatedTree: Tree;
 
   constructor(renderer: RendererBase) {
     this.renderer = renderer;
@@ -48,6 +56,7 @@ export default class Scene {
     this.graphicBundles = new Array<GraphicsBundle>();
     this.graphicBundlesInstanced = new Array<GraphicsBundle>();
     this.graphicBundlesAnimated = new Array<AnimatedGraphicsBundle>();
+    this.shapeGraphicsObjects = new Array<ShapeGraphicsObject>();
     this.particleSpawners = new Array<ParticleSpawner>();
     // --------------------------
 
@@ -56,25 +65,37 @@ export default class Scene {
     this.pointLights = new Array<PointLight>();
     // ------------------
 
-    this.stillOctree = new Octree(vec3.fromValues(-10, -5, -10), vec3.fromValues(10, 15, 10), 5, 5);
-    this.animatedOctree = new Octree(vec3.fromValues(-10, -5, -10), vec3.fromValues(10, 15, 10), 5, 5);
+    this.stillTree = new Tree(
+      new TreeNode(200, vec3.fromValues(20, 20, 20), 5, 10, [true, false, true])
+    );
+    this.animatedTree = new Tree(
+      new TreeNode(200, vec3.fromValues(20, 20, 20), 5, 10, [true, false, true])
+    );
   }
 
   async addNewMesh(
     meshPath: string,
     diffusePath: string,
-    specularPath: string
+    specularPath: string,
+    displayShape: boolean = false
   ): Promise<GraphicsBundle> {
     return this.renderer.meshStore.getMesh(meshPath).then((mesh) => {
-      const index = this.graphicBundles.push(
-        new GraphicsBundle(
-          this.renderer.gl,
-          this.renderer.textureStore.getTexture(diffusePath),
-          this.renderer.textureStore.getTexture(specularPath),
-          mesh
-        )
-      ) - 1;
-      this.stillOctree.addContent(new OctreeSceneContentElement(this.graphicBundles[index]));
+      const index =
+        this.graphicBundles.push(
+          new GraphicsBundle(
+            this.renderer.gl,
+            this.renderer.textureStore.getTexture(diffusePath),
+            this.renderer.textureStore.getTexture(specularPath),
+            mesh
+          )
+        ) - 1;
+      const treeEntry = new TreeSceneContentElement(
+        this.graphicBundles[index]
+      );
+      this.stillTree.addContent(treeEntry);
+      if (displayShape) {
+        this.addNewShape(treeEntry.shape);
+      }
       return this.graphicBundles[index];
     });
   }
@@ -85,16 +106,17 @@ export default class Scene {
     specularPath: string
   ): Promise<GraphicsBundle> {
     return this.renderer.meshStore.getMesh(meshPath).then((mesh) => {
-      const index = this.graphicBundlesInstanced.push(
-        new GraphicsBundle(
-          this.renderer.gl,
-          this.renderer.textureStore.getTexture(diffusePath),
-          this.renderer.textureStore.getTexture(specularPath),
-          mesh,
-          null,
-          true
-        )
-      ) - 1;
+      const index =
+        this.graphicBundlesInstanced.push(
+          new GraphicsBundle(
+            this.renderer.gl,
+            this.renderer.textureStore.getTexture(diffusePath),
+            this.renderer.textureStore.getTexture(specularPath),
+            mesh,
+            null,
+            true
+          )
+        ) - 1;
       return this.graphicBundlesInstanced[index];
     });
   }
@@ -115,7 +137,11 @@ export default class Scene {
           )
         ) - 1;
 
-      this.animatedOctree.addContent(new OctreeSceneContentElement(this.graphicBundlesAnimated[index]));
+      const treeEntry = new TreeSceneContentElement(
+        this.graphicBundlesAnimated[index]
+      );
+      this.animatedTree.addContent(treeEntry);
+      // this.addNewShape(treeEntry.shape);
       return this.graphicBundlesAnimated[index];
     });
   }
@@ -142,22 +168,48 @@ export default class Scene {
     return this.pointLights[length - 1];
   }
 
+  addNewShape(shape: Shape): ShapeGraphicsObject {
+    let index =
+      this.shapeGraphicsObjects.push(
+        new ShapeGraphicsObject(this.renderer.gl, shape)
+      ) - 1;
+    this.shapeGraphicsObjects[index];
+
+    return this.shapeGraphicsObjects[index];
+  }
+
   getDirectionalLight(): DirectionalLight {
     return this.directionalLight;
   }
 
   deleteGraphicsBundle(bundle: GraphicsBundle) {
-    this.stillOctree.removeContent((value: OctreeSceneContentElement) => {return value.graphicsBundle == bundle});
-    this.graphicBundles = this.graphicBundles.filter((value) => {return bundle !== value});
+    this.stillTree.removeContent((value: TreeSceneContentElement) => {
+      return value.graphicsBundle == bundle;
+    });
+    this.graphicBundles = this.graphicBundles.filter((value) => {
+      return bundle !== value;
+    });
   }
 
   deleteAnimatedGraphicsBundle(bundle: AnimatedGraphicsBundle) {
-    this.animatedOctree.removeContent((value: OctreeSceneContentElement) => {return value.graphicsBundle == bundle});
-    this.graphicBundlesAnimated = this.graphicBundlesAnimated.filter((value) => {return bundle !== value});
+    this.animatedTree.removeContent((value: TreeSceneContentElement) => {
+      return value.graphicsBundle == bundle;
+    });
+    this.graphicBundlesAnimated = this.graphicBundlesAnimated.filter(
+      (value) => {
+        return bundle !== value;
+      }
+    );
   }
 
   deletePointLight(light: PointLight) {
     this.pointLights = this.pointLights.filter((l) => light !== l);
+  }
+
+  deleteShape(shape: Shape) {
+    this.shapeGraphicsObjects = this.shapeGraphicsObjects.filter((value) => {
+      return value.shape != shape;
+    });
   }
 
   calculateAllTransforms() {
@@ -174,10 +226,10 @@ export default class Scene {
     frustum: Shape,
     bindSpecialTextures: boolean = true
   ) {
-    const contentFromOctree = new Array<OctreeSceneContentElement>();
-    this.stillOctree.getContentFromIntersection(frustum, contentFromOctree);
+    const contentFromTree = new Array<TreeSceneContentElement>();
+    this.stillTree.getContentFromIntersection(frustum, contentFromTree);
 
-    for (const content of contentFromOctree) {
+    for (const content of contentFromTree) {
       if (IntersectionTester.identifyIntersection([frustum], [content.shape])) {
         content.graphicsBundle.graphicsObject.shaderProgram = shaderProgram;
         content.graphicsBundle.draw(bindSpecialTextures);
@@ -201,16 +253,24 @@ export default class Scene {
     }
   }
 
-  updateOctrees() {
-    this.stillOctree.recalculate((content: OctreeSceneContentElement) => {
-      content.shape.setUpdateNeeded();
+  updateTrees() {
+    this.stillTree.recalculate((content: TreeSceneContentElement) => {
+      (content.shape as OBB).setMinAndMaxVectors(
+        content.graphicsBundle.graphicsObject.getMinAndMaxPositions().min,
+        content.graphicsBundle.graphicsObject.getMinAndMaxPositions().max
+      );
+      content.shape.setTransformMatrix(content.graphicsBundle.transform.matrix);
     });
-    this.stillOctree.prune();
+    this.stillTree.prune();
 
-    this.animatedOctree.recalculate((content: OctreeSceneContentElement) => {
-      content.shape.setUpdateNeeded();
+    this.animatedTree.recalculate((content: TreeSceneContentElement) => {
+      (content.shape as OBB).setMinAndMaxVectors(
+        content.graphicsBundle.graphicsObject.getMinAndMaxPositions().min,
+        content.graphicsBundle.graphicsObject.getMinAndMaxPositions().max
+      );
+      content.shape.setTransformMatrix(content.graphicsBundle.transform.matrix);
     });
-    this.animatedOctree.prune();
+    this.animatedTree.prune();
   }
 
   renderSceneAnimated(
@@ -218,10 +278,10 @@ export default class Scene {
     frustum: Shape,
     bindSpecialTextures: boolean = true
   ) {
-    const contentFromOctree = new Array<OctreeSceneContentElement>();
-    this.animatedOctree.getContentFromIntersection(frustum, contentFromOctree);
+    const contentFromTree = new Array<TreeSceneContentElement>();
+    this.animatedTree.getContentFromIntersection(frustum, contentFromTree);
 
-    for (const content of contentFromOctree) {
+    for (const content of contentFromTree) {
       if (IntersectionTester.identifyIntersection([frustum], [content.shape])) {
         content.graphicsBundle.graphicsObject.shaderProgram = shaderProgram;
         content.graphicsBundle.draw(bindSpecialTextures);
@@ -230,7 +290,7 @@ export default class Scene {
   }
 
   /**
-   * This is mostly for Renderer2D and isn't up to date with fancy things like octree etc.
+   * This is mostly for Renderer2D and isn't up to date with fancy things like trees etc.
    */
   renderSceneInLayerOrder(
     shaderProgram: ShaderProgram,
@@ -259,6 +319,13 @@ export default class Scene {
           }
         }
       }
+    }
+  }
+
+  renderShapes(shaderProgram: ShaderProgram) {
+    for (const shapeObject of this.shapeGraphicsObjects) {
+      shapeObject.shaderProgram = shaderProgram;
+      shapeObject.draw();
     }
   }
 }

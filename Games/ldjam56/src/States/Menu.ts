@@ -11,7 +11,7 @@ import {
   Slider,
 } from "praccen-web-engine";
 import { GetCookie, SetCookie } from "../Utils/WebUtils.js";
-import {Howler} from "howler";
+import { Howler } from "howler";
 import { vec3 } from "gl-matrix";
 import { Factories } from "../Utils/Factories.js";
 
@@ -49,7 +49,7 @@ export default class Menu {
     // Divs
     this.menuDiv = this.createDiv(this.menuRendererDiv);
     this.menuDiv.setHidden(false);
-    
+
     this.optionsDiv = this.createDiv(this.menuRendererDiv);
     this.optionsDiv.setHidden(true);
 
@@ -70,22 +70,27 @@ export default class Menu {
     // Scene
     this.menuScene = new Scene(this.menuRenderer);
     this.menuScene.getDirectionalLight().ambientMultiplier = 0.0;
-    vec3.set(this.menuScene.getDirectionalLight().colour, 0.3216, 0.7412, 0.5922);
+    vec3.set(
+      this.menuScene.getDirectionalLight().colour,
+      0.3216,
+      0.7412,
+      0.5922
+    );
     vec3.set(this.menuScene.getDirectionalLight().direction, 0.001, 1.0, 0.0);
 
     this.menuRenderer.clearColour.r =
-    this.menuScene.getDirectionalLight().colour[0] *
-    (0.44 * this.menuScene.getDirectionalLight().ambientMultiplier);
-  this.menuRenderer.clearColour.g =
-    this.menuScene.getDirectionalLight().colour[1] *
-    (0.44 * this.menuScene.getDirectionalLight().ambientMultiplier);
-  this.menuRenderer.clearColour.b =
-    this.menuScene.getDirectionalLight().colour[2] *
-    (0.44 * this.menuScene.getDirectionalLight().ambientMultiplier);
+      this.menuScene.getDirectionalLight().colour[0] *
+      (0.44 * this.menuScene.getDirectionalLight().ambientMultiplier);
+    this.menuRenderer.clearColour.g =
+      this.menuScene.getDirectionalLight().colour[1] *
+      (0.44 * this.menuScene.getDirectionalLight().ambientMultiplier);
+    this.menuRenderer.clearColour.b =
+      this.menuScene.getDirectionalLight().colour[2] *
+      (0.44 * this.menuScene.getDirectionalLight().ambientMultiplier);
 
     this.menuScene.directionalLight.shadowCameraDistance = 50;
     this.menuScene.directionalLight.lightProjectionBoxSideLength = 20;
-    this.menuScene.directionalLight
+    this.menuScene.directionalLight;
     vec3.zero(this.menuScene.directionalLight.shadowFocusPos);
 
     // Create a camera and set it's starting position
@@ -100,76 +105,92 @@ export default class Menu {
     pl.setShadowBufferResolution(2048);
 
     Factories.createMesh(
-      this.menuScene, 
+      this.menuScene,
       "Assets/objs/MenuBackdrop.obj",
       vec3.create(),
       vec3.fromValues(2.0, 2.0, 2.0),
       "Assets/Textures/dungeon_texture.png",
-      "CSS:rgb(0, 0, 0)",
+      "CSS:rgb(0, 0, 0)"
     ).then((mesh) => {
       quat.fromEuler(mesh.transform.rotation, 0.0, -90.0, 0.0);
     });
 
     Factories.createMesh(
-      this.menuScene, 
+      this.menuScene,
       "Assets/objs/Cheese.obj",
       vec3.fromValues(0.8, 0.4, 0.5),
       vec3.fromValues(0.4, 0.4, 0.4),
       "CSS:rgb(255,204,51)",
-      "CSS:rgb(80, 80, 80)",
+      "CSS:rgb(80, 80, 80)"
     ).then((mesh) => {
       quat.fromEuler(mesh.transform.rotation, 0.0, -60.0, 0.0);
       vec3.set(mesh.emissionColor, 0.5, 0.25, 0.0);
     });
 
     this.mouse = null;
-    this.menuScene.addNewAnimatedMesh("Assets/gltf/Mouse/mouse.gltf", "Assets/gltf/Mouse/Feldmaus_Diffuse.png", "Assets/gltf/Mouse/Feldmaus_Gloss.png").then((mesh) => {
-      this.mouse = mesh;
-      quat.fromEuler(this.mouse.transform.rotation, 0.0, 180, 0.0);
-      vec3.set(this.mouse.transform.position, 0.0, 0.4, 0.0);
-    });
+    this.menuScene
+      .addNewAnimatedMesh(
+        "Assets/gltf/Mouse/mouse.gltf",
+        "Assets/gltf/Mouse/Feldmaus_Diffuse.png",
+        "Assets/gltf/Mouse/Feldmaus_Gloss.png"
+      )
+      .then((mesh) => {
+        this.mouse = mesh;
+        quat.fromEuler(this.mouse.transform.rotation, 0.0, 180, 0.0);
+        vec3.set(this.mouse.transform.position, 0.0, 0.4, 0.0);
+      });
 
     // Main menu
     this.createText(this.menuDiv, "Cheddar Chase", "titleText");
-    this.createButton(this.menuDiv, "Start game", (ev) => {self.toggle()});
-    this.createButton(this.menuDiv, "Options", (ev) => {self.menuDiv.setHidden(true); self.optionsDiv.setHidden(false)});
-    this.createButton(this.menuDiv, "Fullscreen", (ev) => {document.getElementById("game").requestFullscreen();})
-    
+    this.createButton(this.menuDiv, "Start game", (ev) => {
+      self.toggle();
+    });
+    this.createButton(this.menuDiv, "Options", (ev) => {
+      self.menuDiv.setHidden(true);
+      self.optionsDiv.setHidden(false);
+    });
+    this.createButton(this.menuDiv, "Fullscreen", (ev) => {
+      document.getElementById("game").requestFullscreen();
+    });
+
     // Options menu
-    this.createButton(this.optionsDiv, "Back to main menu", (ev) => {self.menuDiv.setHidden(false); self.optionsDiv.setHidden(true)});
+    this.createButton(this.optionsDiv, "Back to main menu", (ev) => {
+      self.menuDiv.setHidden(false);
+      self.optionsDiv.setHidden(true);
+    });
 
     this.createSlider(
-      this.optionsDiv, 
-      "Sound volume ", 
-      0, 
-      100, 
+      this.optionsDiv,
+      "Sound volume ",
+      0,
+      100,
       (ev) => {
         let value = (ev.currentTarget as HTMLInputElement).value;
         SetCookie("soundVolume", value);
         Howler.volume(parseFloat(value) * 0.01);
-      }, 
+      },
       "soundVolume"
     );
 
     this.createSlider(
-      this.optionsDiv, 
-      "Volumetric render scale ", 
-      20, 
-      100, 
+      this.optionsDiv,
+      "Volumetric render scale ",
+      20,
+      100,
       (ev) => {
         let value = (ev.currentTarget as HTMLInputElement).value;
         SetCookie("volumetricRenderScale", value);
         gameRenderer.setFogRenderScale(parseFloat(value) * 0.01);
         self.menuRenderer.setFogRenderScale(parseFloat(value) * 0.01);
-      }, 
+      },
       "volumetricRenderScale"
     );
 
     this.createCheckbox(
-      this.optionsDiv, 
-      "Blur volumetric result ", 
+      this.optionsDiv,
+      "Blur volumetric result ",
       (ev) => {
-        let checked = (ev.currentTarget as HTMLInputElement).checked
+        let checked = (ev.currentTarget as HTMLInputElement).checked;
         SetCookie("volumetricBlur", checked);
         gameRenderer.setFogBlur(checked);
         self.menuRenderer.setFogBlur(checked);
@@ -178,12 +199,24 @@ export default class Menu {
     );
 
     // Game over menu
-    this.createText(this.gameOverDiv, "You were spotted by a rat", "gameOverText");
-    this.createButton(this.gameOverDiv, "Back to main menu", (ev) => {self.goToMainMenu();});
+    this.createText(
+      this.gameOverDiv,
+      "You were spotted by a rat",
+      "gameOverText"
+    );
+    this.createButton(this.gameOverDiv, "Back to main menu", (ev) => {
+      self.goToMainMenu();
+    });
 
     // Game won menu
-    this.createText(this.gameWonDiv, "You stole the cheese, good job!", "titleText");
-    this.createButton(this.gameWonDiv, "Back to main menu", (ev) => {self.goToMainMenu();});
+    this.createText(
+      this.gameWonDiv,
+      "You stole the cheese, good job!",
+      "titleText"
+    );
+    this.createButton(this.gameWonDiv, "Back to main menu", (ev) => {
+      self.goToMainMenu();
+    });
 
     this.enabled = true;
   }
@@ -204,7 +237,12 @@ export default class Menu {
     return div;
   }
 
-  private createText(parentDiv: Div, text: string, className?: string, fontSize?: number) {
+  private createText(
+    parentDiv: Div,
+    text: string,
+    className?: string,
+    fontSize?: number
+  ) {
     let textObject = this.guiRenderer.getNew2DText(parentDiv);
     textObject.ignoreEngineModifiers = true;
     textObject.textString = text;
@@ -217,18 +255,22 @@ export default class Menu {
     textObject.getElement().style.top = "100px";
     textObject.getElement().style.position = "relative";
     textObject.getElement().style.margin = "auto";
-    textObject.getElement().style.display = "block"; 
+    textObject.getElement().style.display = "block";
     textObject.getElement().style.marginTop = "40px";
   }
 
-  private createButton(parentDiv: Div, text: string, onClickFn: (this: HTMLButtonElement, ev: MouseEvent) => any): Button {
+  private createButton(
+    parentDiv: Div,
+    text: string,
+    onClickFn: (this: HTMLButtonElement, ev: MouseEvent) => any
+  ): Button {
     let button = this.guiRenderer.getNewButton(parentDiv);
     button.ignoreEngineModifiers = true;
     button.textString = text;
     button.getElement().style.top = "100px";
     button.getElement().style.position = "relative";
     button.getElement().style.margin = "auto";
-    button.getElement().style.display = "block"; 
+    button.getElement().style.display = "block";
     button.getElement().style.marginTop = "40px";
     button.getElement().style.whiteSpace = "pre-wrap";
     button.onClick(onClickFn);
@@ -236,14 +278,21 @@ export default class Menu {
     return button;
   }
 
-  private createSlider(parentDiv: Div, text: string, min: number, max: number, onChangeFn: (this: HTMLInputElement, ev: MouseEvent) => any, cookieName: string = ""): Slider {
+  private createSlider(
+    parentDiv: Div,
+    text: string,
+    min: number,
+    max: number,
+    onChangeFn: (this: HTMLInputElement, ev: MouseEvent) => any,
+    cookieName: string = ""
+  ): Slider {
     let slider = this.guiRenderer.getNewSlider(parentDiv);
     slider.ignoreEngineModifiers = true;
     slider.textString = text;
     slider.getElement().style.top = "100px";
     slider.getElement().style.position = "relative";
     slider.getElement().style.margin = "auto";
-    slider.getElement().style.display = "block"; 
+    slider.getElement().style.display = "block";
     slider.getElement().style.marginTop = "40px";
     slider.getElement().style.whiteSpace = "pre-wrap";
     slider.getInputElement().min = min.toString();
@@ -262,14 +311,19 @@ export default class Menu {
     return slider;
   }
 
-  private createCheckbox(parentDiv: Div, text: string, onChangeFn: (this: HTMLInputElement, ev: MouseEvent) => any, cookieName: string = ""): Checkbox {
+  private createCheckbox(
+    parentDiv: Div,
+    text: string,
+    onChangeFn: (this: HTMLInputElement, ev: MouseEvent) => any,
+    cookieName: string = ""
+  ): Checkbox {
     let checkbox = this.guiRenderer.getNewCheckbox(parentDiv);
     checkbox.ignoreEngineModifiers = true;
     checkbox.textString = text;
     checkbox.getElement().style.top = "100px";
     checkbox.getElement().style.position = "relative";
     checkbox.getElement().style.margin = "auto";
-    checkbox.getElement().style.display = "block"; 
+    checkbox.getElement().style.display = "block";
     checkbox.getElement().style.marginTop = "40px";
     checkbox.getElement().style.whiteSpace = "pre-wrap";
     checkbox.onChange(onChangeFn);
@@ -278,8 +332,7 @@ export default class Menu {
       const cookieValue = GetCookie(cookieName);
       if (cookieValue != "") {
         checkbox.getInputElement().checked = cookieValue != "false";
-      }
-      else {
+      } else {
         checkbox.getInputElement().checked = true;
       }
     }
@@ -312,7 +365,6 @@ export default class Menu {
       quat.fromEuler(this.mouse.transform.rotation, 0.0, 0.0, 0.0);
       vec3.set(this.mouse.transform.position, -1.7, 0.4, -1.0);
     }
-    
   }
 
   goToGameWonScreen() {
@@ -333,9 +385,7 @@ export default class Menu {
     this.menuCamera.setAspectRatio(width / height);
   }
 
-  update(dt: number) {
-
-  }
+  update(dt: number) {}
 
   preRenderingUpdate(dt: number) {
     if (this.mouse != undefined) {
@@ -344,6 +394,10 @@ export default class Menu {
   }
 
   draw() {
-    this.menuRenderer.render(this.menuScene, this.menuCamera);
+    this.menuRenderer.render(
+      this.menuScene,
+      this.menuCamera,
+      this.menuCamera.getFrustum()
+    );
   }
 }

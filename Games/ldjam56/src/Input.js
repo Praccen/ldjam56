@@ -82,14 +82,12 @@ class InputHandler {
   mouseMoveCallBack(event) {
     // Overload this if you want direct controll of the events
   }
-  
+
   handleTouch(touches) {
     this.touchUsed = true;
     this.touches.length = 0;
     for (let i = 0; i < touches.length; i++) {
-      this.touches.push(
-        [touches.item(i).clientX, touches.item(i).clientY]
-      );
+      this.touches.push([touches.item(i).clientX, touches.item(i).clientY]);
     }
   }
 

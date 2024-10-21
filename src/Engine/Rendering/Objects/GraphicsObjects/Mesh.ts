@@ -14,8 +14,8 @@ export default class Mesh extends GraphicsObject {
   }
 
   setVertexData(data: Float32Array) {
-    super.setVertexData(data);
     this.vertices = data;
+    super.setVertexData(data);
   }
 
   setupVertexAttributePointers(): void {

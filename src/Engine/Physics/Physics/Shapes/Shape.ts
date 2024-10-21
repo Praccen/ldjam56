@@ -1,8 +1,9 @@
 import { mat4, vec3 } from "gl-matrix";
+import GraphicsObject from "../../../Rendering/Objects/GraphicsObjects/GraphicsObject";
 
 export default class Shape {
   margin: number;
-  
+
   protected verticesNeedsUpdate: boolean;
   protected normalsNeedsUpdate: boolean;
   protected edgesNeedsUpdate: boolean;
@@ -19,7 +20,9 @@ export default class Shape {
 
   setUpdateNeeded() {}
 
-  getVertexUpdateNeeded(): boolean {return this.verticesNeedsUpdate;}
+  getVertexUpdateNeeded(): boolean {
+    return this.verticesNeedsUpdate;
+  }
 
   setTransformMatrix(matrix: mat4) {}
 
@@ -41,5 +44,9 @@ export default class Shape {
 
   getTransformedEdgeNormals(): Array<vec3> {
     return null;
+  }
+
+  getDrawingInfo(): { indices: Int32Array; mode: GLuint } {
+    return { indices: null, mode: WebGL2RenderingContext.POINTS };
   }
 }
